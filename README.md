@@ -1,30 +1,38 @@
 # Health Check CLI
 
-![Go](https://img.shields.io/badge/Go-1.21+-00ADD8?style=flat-square&logo=go&logoColor=white)
-![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)
-![Platform](https://img.shields.io/badge/Platform-Linux%20|%20macOS%20|%20Windows-lightgrey?style=flat-square)
+<div align="center">
 
-## Overview / 项目概述
+[![Go](https://img.shields.io/badge/Go-1.21+-00ADD8?style=flat-square&logo=go&logoColor=white)](https://go.dev)
+[![License](https://img.shields.io/badge/License-MIT-blue?style=flat-square)](LICENSE)
+[![Platform](https://img.shields.io/badge/Platform-Linux%20|%20macOS%20|%20Windows-lightgrey?style=flat-square)]()
 
-A command-line tool written in Go for batch HTTP endpoint health checking. Supports concurrent checks, multiple output formats, and configuration file management. Perfect for deployment verification, troubleshooting, and CI/CD integration.
+**A CLI tool for batch HTTP endpoint health checking written in Go**
 
-用 Go 语言编写的命令行工具，用于批量检查 HTTP 端点的健康状态。支持并发检查、多种输出格式、配置文件管理，适用于部署验证、故障排查、CI/CD 集成等场景。
+[English](#english) | [中文](#中文)
 
-## Features / 功能特性
+</div>
 
-- **Single URL Check / 单 URL 检查**: Quick health check for individual endpoints
-- **Batch Check / 批量检查**: Concurrent checking of multiple endpoints from config file
-- **Multiple Output Formats / 多种输出格式**: Table (human-readable) and JSON (machine-readable)
-- **Configurable Timeout / 超时控制**: Customizable request timeout per endpoint
-- **Retry Mechanism / 重试机制**: Automatic retry on failure
-- **Custom Headers / 自定义 Headers**: Support for authentication and custom request headers
-- **SSL Verification Skip / SSL 证书跳过**: Support for self-signed certificates
-- **Exit Codes / 退出码**: CI/CD friendly exit codes for automation
-- **Cross-Platform / 跨平台**: Supports Linux, macOS, and Windows
+---
 
-## Quick Start / 快速开始
+## English
 
-### Installation / 安装
+### Overview
+
+Health Check CLI is a command-line tool written in Go for batch HTTP endpoint health checking. It supports concurrent checks, multiple output formats, and configuration file management. Perfect for deployment verification, troubleshooting, and CI/CD integration.
+
+### Features
+
+- **Single URL Check**: Quick health check for individual endpoints
+- **Batch Check**: Concurrent checking of multiple endpoints from config file
+- **Multiple Output Formats**: Table (human-readable) and JSON (machine-readable)
+- **Configurable Timeout**: Customizable request timeout per endpoint
+- **Retry Mechanism**: Automatic retry on failure
+- **Custom Headers**: Support for authentication and custom request headers
+- **SSL Verification Skip**: Support for self-signed certificates
+- **Exit Codes**: CI/CD friendly exit codes for automation
+- **Cross-Platform**: Supports Linux, macOS, and Windows
+
+### Quick Start
 
 ```bash
 # Using Go install
@@ -34,57 +42,34 @@ go install github.com/r1ckyIn/healthcheck-cli@latest
 # https://github.com/r1ckyIn/healthcheck-cli/releases
 ```
 
-### Basic Usage / 基本用法
+### Usage
 
 ```bash
-# Check single URL / 检查单个 URL
+# Check single URL
 healthcheck check https://api.example.com/health
 
-# Check with custom timeout / 自定义超时
+# Check with custom timeout
 healthcheck check https://api.example.com/health --timeout 10s
 
-# Batch check from config file / 从配置文件批量检查
+# Batch check from config file
 healthcheck run -c endpoints.yaml
 
-# JSON output for CI/CD / JSON 输出用于 CI/CD
+# JSON output for CI/CD
 healthcheck run -c endpoints.yaml -o json
 ```
 
-## Project Structure / 项目结构
-
-```
-healthcheck-cli/
-├── cmd/                    # CLI commands
-│   ├── root.go            # Root command + global config
-│   ├── check.go           # check subcommand
-│   ├── run.go             # run subcommand
-│   ├── config.go          # config subcommand group
-│   └── version.go         # version subcommand
-├── internal/
-│   ├── checker/           # Core health check logic
-│   ├── config/            # Configuration parsing
-│   └── output/            # Output formatters
-├── .github/workflows/     # CI/CD pipelines
-├── docs/                  # Documentation
-├── tests/                 # Test files
-├── main.go               # Entry point
-├── go.mod
-├── .goreleaser.yaml      # Cross-platform build config
-└── README.md
-```
-
-## Configuration / 配置文件
+### Configuration
 
 Create an `endpoints.yaml` file:
 
 ```yaml
-# Global defaults / 全局默认配置
+# Global defaults
 defaults:
   timeout: 5s
   retries: 2
   expected_status: 200
 
-# Endpoint list / 端点列表
+# Endpoint list
 endpoints:
   - name: "API Gateway"
     url: "https://api.example.com/health"
@@ -100,55 +85,139 @@ endpoints:
     insecure: true
 ```
 
-## Command Reference / 命令参考
+### Command Reference
 
-| Command / 命令 | Description / 描述 |
-|---------------|-------------------|
-| `healthcheck check <url>` | Check single URL / 检查单个 URL |
-| `healthcheck run` | Batch check from config / 从配置批量检查 |
-| `healthcheck config init` | Generate sample config / 生成示例配置 |
-| `healthcheck config validate` | Validate config file / 校验配置文件 |
-| `healthcheck completion <shell>` | Generate shell completion / 生成 Shell 补全 |
-| `healthcheck version` | Show version info / 显示版本信息 |
+| Command | Description |
+|---------|-------------|
+| `healthcheck check <url>` | Check single URL |
+| `healthcheck run` | Batch check from config |
+| `healthcheck config init` | Generate sample config |
+| `healthcheck config validate` | Validate config file |
+| `healthcheck completion <shell>` | Generate shell completion |
+| `healthcheck version` | Show version info |
 
-## Exit Codes / 退出码
+### Exit Codes
 
-| Code / 码 | Meaning / 含义 |
-|-----------|---------------|
-| 0 | All services healthy / 所有服务健康 |
-| 1 | Some services unhealthy / 有服务不健康 |
-| 2 | Configuration error / 配置错误 |
+| Code | Meaning |
+|------|---------|
+| 0 | All services healthy |
+| 1 | Some services unhealthy |
+| 2 | Configuration error |
 
-## Tech Stack / 技术栈
+### Project Structure
 
-- **Language / 语言**: Go
-- **CLI Framework / CLI 框架**: [Cobra](https://cobra.dev/)
-- **Config Management / 配置管理**: [Viper](https://github.com/spf13/viper)
-- **Concurrency / 并发模型**: goroutine + channel + semaphore
-- **Build / 构建**: [GoReleaser](https://goreleaser.com/)
+```
+healthcheck-cli/
+├── cmd/                    # CLI commands
+│   ├── root.go            # Root command + global config
+│   ├── check.go           # check subcommand
+│   ├── run.go             # run subcommand
+│   ├── config.go          # config subcommand group
+│   └── version.go         # version subcommand
+├── internal/
+│   ├── checker/           # Core health check logic
+│   ├── config/            # Configuration parsing
+│   └── output/            # Output formatters
+├── .github/workflows/     # CI/CD pipelines
+├── main.go               # Entry point
+└── .goreleaser.yaml      # Cross-platform build config
+```
+
+### Tech Stack
+
+- **Language**: Go
+- **CLI Framework**: [Cobra](https://cobra.dev/)
+- **Config Management**: [Viper](https://github.com/spf13/viper)
+- **Concurrency**: goroutine + channel + semaphore
+- **Build**: [GoReleaser](https://goreleaser.com/)
 - **CI/CD**: GitHub Actions
 
-## Contributing / 贡献指南
+---
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+## 中文
 
-欢迎贡献！请随时提交 Pull Request。
+### 项目概述
 
-1. Fork the repository / Fork 本仓库
-2. Create your feature branch / 创建功能分支 (`git checkout -b feature/amazing-feature`)
-3. Commit your changes / 提交更改 (`git commit -m 'feat: add amazing feature'`)
-4. Push to the branch / 推送到分支 (`git push origin feature/amazing-feature`)
-5. Open a Pull Request / 开启 Pull Request
+Health Check CLI 是一个用 Go 语言编写的命令行工具，用于批量检查 HTTP 端点的健康状态。支持并发检查、多种输出格式、配置文件管理，适用于部署验证、故障排查、CI/CD 集成等场景。
 
-## License / 许可证
+### 功能特性
 
-MIT License - see [LICENSE](LICENSE) file for details.
+- **单 URL 检查**：快速检查单个端点健康状态
+- **批量检查**：从配置文件并发检查多个端点
+- **多种输出格式**：Table（人类可读）和 JSON（机器可读）
+- **超时控制**：可自定义每个端点的请求超时时间
+- **重试机制**：失败时自动重试
+- **自定义 Headers**：支持认证和自定义请求头
+- **SSL 证书跳过**：支持自签名证书
+- **退出码**：CI/CD 友好的退出码，便于自动化
+- **跨平台**：支持 Linux、macOS、Windows
 
-MIT 许可证 - 详见 [LICENSE](LICENSE) 文件。
+### 快速开始
 
-## Author / 作者
+```bash
+# 使用 Go install 安装
+go install github.com/r1ckyIn/healthcheck-cli@latest
+
+# 或从 releases 下载
+# https://github.com/r1ckyIn/healthcheck-cli/releases
+```
+
+### 使用方法
+
+```bash
+# 检查单个 URL
+healthcheck check https://api.example.com/health
+
+# 自定义超时时间
+healthcheck check https://api.example.com/health --timeout 10s
+
+# 从配置文件批量检查
+healthcheck run -c endpoints.yaml
+
+# JSON 输出用于 CI/CD
+healthcheck run -c endpoints.yaml -o json
+```
+
+### 命令参考
+
+| 命令 | 说明 |
+|------|------|
+| `healthcheck check <url>` | 检查单个 URL |
+| `healthcheck run` | 从配置批量检查 |
+| `healthcheck config init` | 生成示例配置 |
+| `healthcheck config validate` | 校验配置文件 |
+| `healthcheck completion <shell>` | 生成 Shell 补全 |
+| `healthcheck version` | 显示版本信息 |
+
+### 退出码
+
+| 码 | 含义 |
+|----|------|
+| 0 | 所有服务健康 |
+| 1 | 有服务不健康 |
+| 2 | 配置错误 |
+
+### 技术栈
+
+- **语言**：Go
+- **CLI 框架**：[Cobra](https://cobra.dev/)
+- **配置管理**：[Viper](https://github.com/spf13/viper)
+- **并发模型**：goroutine + channel + semaphore
+- **构建**：[GoReleaser](https://goreleaser.com/)
+- **CI/CD**：GitHub Actions
+
+---
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+---
+
+## Author
 
 **Ricky** - CS Student @ University of Sydney
 
-- GitHub: [@r1ckyIn](https://github.com/r1ckyIn)
-- Email: rickyqin919@gmail.com
+[![GitHub](https://img.shields.io/badge/GitHub-r1ckyIn-181717?style=flat-square&logo=github)](https://github.com/r1ckyIn)
+
+Interested in Cloud Engineering & DevOps
