@@ -4,7 +4,6 @@ package cmd
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/r1ckyIn/healthcheck-cli/internal/config"
 	"github.com/spf13/cobra"
@@ -42,7 +41,7 @@ Examples:
 
   # Generate full configuration with all options
   healthcheck config init --full > endpoints.yaml`,
-	Run: runConfigInit,
+	RunE: runConfigInit,
 }
 
 // configValidateCmd is the config validate subcommand
@@ -62,7 +61,7 @@ Examples:
   healthcheck config validate
   healthcheck config validate -c endpoints.yaml
   healthcheck config validate -c /path/to/config.yaml`,
-	Run: runConfigValidate,
+	RunE: runConfigValidate,
 }
 
 func init() {
@@ -80,36 +79,35 @@ func init() {
 }
 
 // runConfigInit executes the config init command
-func runConfigInit(cmd *cobra.Command, args []string) {
+func runConfigInit(cmd *cobra.Command, args []string) error {
 	sample := config.GenerateSampleConfig(configInitFull)
 	fmt.Print(sample)
+	return nil
 }
 
 // runConfigValidate executes the config validate command
-func runConfigValidate(cmd *cobra.Command, args []string) {
+func runConfigValidate(cmd *cobra.Command, args []string) error {
 	// Load config file
 	cfg, err := config.Load(configValidatePath)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error: %s\n", err)
-		os.Exit(2)
+		return fmt.Errorf("%w: %s", ErrConfig, err)
 	}
 
 	// Validate config
-	errors := config.ValidateConfig(cfg)
+	configErrors := config.ValidateConfig(cfg)
 
-	if len(errors) > 0 {
-		fmt.Fprintf(os.Stderr, "Configuration validation failed:\n")
-		for _, e := range errors {
-			fmt.Fprintf(os.Stderr, "  - %s\n", e)
+	if len(configErrors) > 0 {
+		errMsg := "configuration validation failed:"
+		for _, e := range configErrors {
+			errMsg += "\n  - " + e
 		}
-		os.Exit(2)
+		return fmt.Errorf("%w: %s", ErrConfig, errMsg)
 	}
 
 	// Try converting to endpoints to check parsing
 	endpoints, err := cfg.ToCheckerEndpoints()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error: %s\n", err)
-		os.Exit(2)
+		return fmt.Errorf("%w: %s", ErrConfig, err)
 	}
 
 	fmt.Printf("Configuration is valid.\n")
@@ -122,4 +120,6 @@ func runConfigValidate(cmd *cobra.Command, args []string) {
 			fmt.Printf("    - %s\n", ep.Name)
 		}
 	}
+
+	return nil
 }

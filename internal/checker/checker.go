@@ -143,7 +143,7 @@ func (c *Checker) CheckWithContext(ctx context.Context, ep Endpoint) Result {
 
 	// Set User-Agent
 	if req.Header.Get("User-Agent") == "" {
-		req.Header.Set("User-Agent", "healthcheck-cli/1.0")
+		req.Header.Set("User-Agent", "healthcheck-cli/"+Version)
 	}
 
 	// Execute request and measure time

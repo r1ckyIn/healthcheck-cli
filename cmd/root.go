@@ -6,6 +6,7 @@ import (
 	"errors"
 	"os"
 
+	"github.com/r1ckyIn/healthcheck-cli/internal/checker"
 	"github.com/spf13/cobra"
 )
 
@@ -47,6 +48,9 @@ func Execute() {
 }
 
 func init() {
+	// Set checker version for User-Agent
+	checker.Version = Version
+
 	// Global flags
 	rootCmd.PersistentFlags().BoolVar(&noColor, "no-color", false, "Disable colored output")
 

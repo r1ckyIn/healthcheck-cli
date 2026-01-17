@@ -6,6 +6,9 @@ import (
 	"time"
 )
 
+// Version is the application version, set by cmd package at init
+var Version = "dev"
+
 // Endpoint represents an endpoint to check
 type Endpoint struct {
 	Name            string            // Endpoint name for display

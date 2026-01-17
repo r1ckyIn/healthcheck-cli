@@ -239,8 +239,10 @@ func TestCheck_UserAgent(t *testing.T) {
 
 	c.Check(ep)
 
-	if receivedUA != "healthcheck-cli/1.0" {
-		t.Errorf("User-Agent = %q, want %q", receivedUA, "healthcheck-cli/1.0")
+	// User-Agent should be "healthcheck-cli/{version}"
+	expectedPrefix := "healthcheck-cli/"
+	if !strings.HasPrefix(receivedUA, expectedPrefix) {
+		t.Errorf("User-Agent = %q, want prefix %q", receivedUA, expectedPrefix)
 	}
 }
 
