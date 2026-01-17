@@ -6,6 +6,7 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
+	"net"
 	"net/http"
 	"strings"
 	"sync"
@@ -83,12 +84,18 @@ func (c *Checker) getClient(ep Endpoint) *http.Client {
 
 	client := &http.Client{
 		Transport: &http.Transport{
+			DialContext: (&net.Dialer{
+				Timeout:   30 * time.Second,
+				KeepAlive: 30 * time.Second,
+			}).DialContext,
 			TLSClientConfig: &tls.Config{
 				InsecureSkipVerify: ep.Insecure,
 			},
-			MaxIdleConns:        100,
-			MaxIdleConnsPerHost: 10,
-			IdleConnTimeout:     90 * time.Second,
+			TLSHandshakeTimeout:   10 * time.Second,
+			ResponseHeaderTimeout: 10 * time.Second,
+			MaxIdleConns:          100,
+			MaxIdleConnsPerHost:   10,
+			IdleConnTimeout:       90 * time.Second,
 		},
 	}
 
@@ -200,7 +207,8 @@ func (c *Checker) CheckWithRetryContext(ctx context.Context, ep Endpoint) Result
 	return result
 }
 
-// indexedResult holds result with its index
+// indexedResult holds result with its original index to preserve order
+// when collecting results from concurrent goroutines.
 type indexedResult struct {
 	idx    int
 	result Result

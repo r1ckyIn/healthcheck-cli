@@ -75,15 +75,13 @@ func runCheck(cmd *cobra.Command, args []string) error {
 
 	// Validate URL format
 	if err := validateURL(targetURL); err != nil {
-		fmt.Fprintf(os.Stderr, "Error: %s\n", err)
-		os.Exit(2)
+		return fmt.Errorf("%w: %s", ErrConfig, err)
 	}
 
 	// Parse headers
 	headers, err := parseHeaders(checkHeaders)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error: %s\n", err)
-		os.Exit(2)
+		return fmt.Errorf("%w: %s", ErrConfig, err)
 	}
 
 	// Create endpoint configuration
@@ -113,9 +111,9 @@ func runCheck(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to format output: %w", err)
 	}
 
-	// Set exit code based on result
+	// Return error if unhealthy (exit code 1)
 	if !result.Healthy {
-		os.Exit(1)
+		return ErrUnhealthy
 	}
 
 	return nil

@@ -19,6 +19,12 @@ const (
 	colorYellow = "\033[33m"
 )
 
+// Table column width limits
+const (
+	maxNameWidth = 30
+	maxURLWidth  = 50
+)
+
 // TableFormatter implements table format output
 type TableFormatter struct {
 	writer  io.Writer
@@ -79,11 +85,11 @@ func (f *TableFormatter) FormatBatch(batch checker.BatchResult) error {
 	}
 
 	// Limit maximum width
-	if nameWidth > 30 {
-		nameWidth = 30
+	if nameWidth > maxNameWidth {
+		nameWidth = maxNameWidth
 	}
-	if urlWidth > 50 {
-		urlWidth = 50
+	if urlWidth > maxURLWidth {
+		urlWidth = maxURLWidth
 	}
 
 	// Print header

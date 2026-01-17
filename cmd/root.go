@@ -3,9 +3,18 @@
 package cmd
 
 import (
+	"errors"
 	"os"
 
 	"github.com/spf13/cobra"
+)
+
+// Custom error types for exit code handling
+var (
+	// ErrConfig indicates a configuration error (exit code 2)
+	ErrConfig = errors.New("configuration error")
+	// ErrUnhealthy indicates unhealthy endpoint(s) (exit code 1)
+	ErrUnhealthy = errors.New("unhealthy endpoint")
 )
 
 // Global variables
@@ -26,14 +35,25 @@ Example usage:
   healthcheck config init > endpoints.yaml`,
 }
 
-// Execute executes the root command
-func Execute() error {
-	return rootCmd.Execute()
+// Execute executes the root command and handles exit codes
+func Execute() {
+	if err := rootCmd.Execute(); err != nil {
+		// Cobra already prints the error, so we just need to set exit code
+		if errors.Is(err, ErrConfig) {
+			os.Exit(2)
+		}
+		os.Exit(1)
+	}
 }
 
 func init() {
 	// Global flags
 	rootCmd.PersistentFlags().BoolVar(&noColor, "no-color", false, "Disable colored output")
+
+	// Support NO_COLOR environment variable (https://no-color.org/)
+	if os.Getenv("NO_COLOR") != "" {
+		noColor = true
+	}
 
 	// Detect if running in non-TTY environment, auto-disable colors
 	if fileInfo, _ := os.Stdout.Stat(); (fileInfo.Mode() & os.ModeCharDevice) == 0 {

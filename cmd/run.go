@@ -73,24 +73,22 @@ func runRun(cmd *cobra.Command, args []string) error {
 	// Load config file
 	cfg, err := config.Load(runConfigPath)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error: %s\n", err)
-		os.Exit(2)
+		return fmt.Errorf("%w: %s", ErrConfig, err)
 	}
 
 	// Validate config
-	if errors := config.ValidateConfig(cfg); len(errors) > 0 {
-		fmt.Fprintf(os.Stderr, "Configuration errors:\n")
-		for _, e := range errors {
-			fmt.Fprintf(os.Stderr, "  - %s\n", e)
+	if configErrors := config.ValidateConfig(cfg); len(configErrors) > 0 {
+		errMsg := "configuration validation failed:"
+		for _, e := range configErrors {
+			errMsg += "\n  - " + e
 		}
-		os.Exit(2)
+		return fmt.Errorf("%w: %s", ErrConfig, errMsg)
 	}
 
 	// Convert to checker.Endpoint
 	endpoints, err := cfg.ToCheckerEndpoints()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error: %s\n", err)
-		os.Exit(2)
+		return fmt.Errorf("%w: %s", ErrConfig, err)
 	}
 
 	// Apply command line override flags
@@ -123,9 +121,9 @@ func runRun(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	// Set exit code based on result
+	// Return error if any unhealthy endpoints (exit code 1)
 	if result.Summary.Unhealthy > 0 {
-		os.Exit(1)
+		return ErrUnhealthy
 	}
 
 	return nil
