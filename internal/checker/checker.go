@@ -89,7 +89,7 @@ func (c *Checker) getClient(ep Endpoint) *http.Client {
 				KeepAlive: 30 * time.Second,
 			}).DialContext,
 			TLSClientConfig: &tls.Config{
-				InsecureSkipVerify: ep.Insecure,
+				InsecureSkipVerify: ep.Insecure, // #nosec G402 - intentional option for self-signed certs
 			},
 			TLSHandshakeTimeout:   10 * time.Second,
 			ResponseHeaderTimeout: 10 * time.Second,
