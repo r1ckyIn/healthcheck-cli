@@ -3,6 +3,7 @@
 package checker
 
 import (
+	"context"
 	"errors"
 	"net/http"
 	"net/http/httptest"
@@ -515,5 +516,112 @@ func TestCheck_InvalidURL(t *testing.T) {
 	}
 	if result.Error == nil {
 		t.Error("Error = nil, want error")
+	}
+}
+
+// TestCheckWithContext 测试带 context 的检查
+func TestCheckWithContext(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer server.Close()
+
+	c := New()
+	ctx := context.Background()
+	ep := Endpoint{
+		Name:           "test-server",
+		URL:            server.URL,
+		Timeout:        5 * time.Second,
+		ExpectedStatus: 200,
+	}
+
+	result := c.CheckWithContext(ctx, ep)
+
+	if !result.Healthy {
+		t.Error("Healthy = false, want true")
+	}
+}
+
+// TestCheckWithContext_Cancelled 测试 context 取消
+func TestCheckWithContext_Cancelled(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		time.Sleep(200 * time.Millisecond)
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer server.Close()
+
+	c := New()
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel() // 立即取消
+
+	ep := Endpoint{
+		Name:           "test-server",
+		URL:            server.URL,
+		Timeout:        5 * time.Second,
+		ExpectedStatus: 200,
+	}
+
+	result := c.CheckWithContext(ctx, ep)
+
+	if result.Healthy {
+		t.Error("Healthy = true, want false (cancelled)")
+	}
+	if result.Error == nil {
+		t.Error("Error = nil, want context cancelled error")
+	}
+}
+
+// TestCheckAllWithContext 测试带 context 的批量检查
+func TestCheckAllWithContext(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer server.Close()
+
+	c := New()
+	ctx := context.Background()
+	endpoints := []Endpoint{
+		{Name: "server1", URL: server.URL, Timeout: 5 * time.Second, ExpectedStatus: 200},
+	}
+
+	batch := c.CheckAllWithContext(ctx, endpoints)
+
+	if len(batch.Results) != 1 {
+		t.Errorf("len(Results) = %d, want 1", len(batch.Results))
+	}
+	if !batch.Results[0].Healthy {
+		t.Error("Results[0].Healthy = false, want true")
+	}
+}
+
+// TestCategorizeError_ContextCanceled 测试 context 取消错误分类
+func TestCategorizeError_ContextCanceled(t *testing.T) {
+	c := New()
+	err := errors.New("context canceled")
+	result := c.categorizeError(err)
+
+	if !strings.Contains(result.Error(), "request canceled") {
+		t.Errorf("categorizeError() = %q, want to contain 'request canceled'", result.Error())
+	}
+}
+
+// TestGetClientKey 测试客户端缓存键生成
+func TestGetClientKey(t *testing.T) {
+	tests := []struct {
+		insecure        bool
+		followRedirects bool
+		expected        string
+	}{
+		{false, true, "secure-follow"},
+		{false, false, "secure-nofollow"},
+		{true, true, "insecure-follow"},
+		{true, false, "insecure-nofollow"},
+	}
+
+	for _, tt := range tests {
+		result := getClientKey(tt.insecure, tt.followRedirects)
+		if result != tt.expected {
+			t.Errorf("getClientKey(%v, %v) = %q, want %q", tt.insecure, tt.followRedirects, result, tt.expected)
+		}
 	}
 }

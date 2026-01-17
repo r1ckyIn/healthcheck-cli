@@ -1,5 +1,5 @@
-// 配置文件解析
-// 实现 YAML 配置文件的解析和管理
+// Config file parsing / 配置文件解析
+// Implement YAML config file parsing and management / 实现 YAML 配置文件的解析和管理
 package config
 
 import (
@@ -13,13 +13,13 @@ import (
 	"github.com/spf13/viper"
 )
 
-// Config 表示完整的配置结构
+// Config represents complete config structure / 表示完整的配置结构
 type Config struct {
 	Defaults  Defaults   `mapstructure:"defaults"`
 	Endpoints []Endpoint `mapstructure:"endpoints"`
 }
 
-// Defaults 全局默认配置
+// Defaults is global default config / 全局默认配置
 type Defaults struct {
 	Timeout         string `mapstructure:"timeout"`
 	Retries         int    `mapstructure:"retries"`
@@ -28,7 +28,7 @@ type Defaults struct {
 	Insecure        bool   `mapstructure:"insecure"`
 }
 
-// Endpoint 单个端点配置
+// Endpoint is single endpoint config / 单个端点配置
 type Endpoint struct {
 	Name            string            `mapstructure:"name"`
 	URL             string            `mapstructure:"url"`
@@ -40,9 +40,9 @@ type Endpoint struct {
 	Headers         map[string]string `mapstructure:"headers"`
 }
 
-// Load 从文件加载配置
+// Load loads config from file / 从文件加载配置
 func Load(path string) (*Config, error) {
-	// 检查文件是否存在
+	// Check if file exists / 检查文件是否存在
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		return nil, fmt.Errorf("config file not found: %s", path)
 	}
@@ -63,11 +63,11 @@ func Load(path string) (*Config, error) {
 	return &cfg, nil
 }
 
-// ToCheckerEndpoints 将配置转换为 checker.Endpoint 列表
+// ToCheckerEndpoints converts config to checker.Endpoint list / 将配置转换为 checker.Endpoint 列表
 func (c *Config) ToCheckerEndpoints() ([]checker.Endpoint, error) {
 	endpoints := make([]checker.Endpoint, 0, len(c.Endpoints))
 
-	// 解析默认值
+	// Parse defaults / 解析默认值
 	defaultTimeout := 5 * time.Second
 	if c.Defaults.Timeout != "" {
 		t, err := time.ParseDuration(c.Defaults.Timeout)
@@ -90,20 +90,20 @@ func (c *Config) ToCheckerEndpoints() ([]checker.Endpoint, error) {
 
 	defaultInsecure := c.Defaults.Insecure
 
-	// 转换每个端点
+	// Convert each endpoint / 转换每个端点
 	for i, ep := range c.Endpoints {
 		if ep.URL == "" {
 			return nil, fmt.Errorf("endpoint #%d: missing url", i+1)
 		}
 
-		// 处理环境变量替换
+		// Expand environment variables / 处理环境变量替换
 		url := expandEnvVars(ep.URL)
 		name := ep.Name
 		if name == "" {
 			name = url
 		}
 
-		// 解析超时时间
+		// Parse timeout / 解析超时时间
 		timeout := defaultTimeout
 		if ep.Timeout != "" {
 			t, err := time.ParseDuration(ep.Timeout)
@@ -113,31 +113,31 @@ func (c *Config) ToCheckerEndpoints() ([]checker.Endpoint, error) {
 			timeout = t
 		}
 
-		// 重试次数
+		// Retry count / 重试次数
 		retries := defaultRetries
 		if ep.Retries != nil {
 			retries = *ep.Retries
 		}
 
-		// 期望状态码
+		// Expected status code / 期望状态码
 		expectedStatus := defaultExpectedStatus
 		if ep.ExpectedStatus != nil {
 			expectedStatus = *ep.ExpectedStatus
 		}
 
-		// 跟随重定向
+		// Follow redirects / 跟随重定向
 		followRedirects := defaultFollowRedirects
 		if ep.FollowRedirects != nil {
 			followRedirects = *ep.FollowRedirects
 		}
 
-		// SSL 验证
+		// SSL verification / SSL 验证
 		insecure := defaultInsecure
 		if ep.Insecure != nil {
 			insecure = *ep.Insecure
 		}
 
-		// 处理 Headers 中的环境变量
+		// Expand environment variables in headers / 处理 Headers 中的环境变量
 		headers := make(map[string]string)
 		for k, v := range ep.Headers {
 			headers[k] = expandEnvVars(v)
@@ -158,15 +158,15 @@ func (c *Config) ToCheckerEndpoints() ([]checker.Endpoint, error) {
 	return endpoints, nil
 }
 
-// expandEnvVars 扩展环境变量
-// 支持 ${VAR} 和 ${VAR:-default} 格式
-func expandEnvVars(s string) string {
-	// 匹配 ${VAR} 或 ${VAR:-default}
-	re := regexp.MustCompile(`\$\{([^}:]+)(:-([^}]*))?\}`)
+// envVarPattern matches ${VAR} or ${VAR:-default} / 匹配 ${VAR} 或 ${VAR:-default}
+var envVarPattern = regexp.MustCompile(`\$\{([^}:]+)(:-([^}]*))?\}`)
 
-	return re.ReplaceAllStringFunc(s, func(match string) string {
-		// 解析变量名和默认值
-		parts := re.FindStringSubmatch(match)
+// expandEnvVars expands environment variables / 扩展环境变量
+// Supports ${VAR} and ${VAR:-default} format / 支持 ${VAR} 和 ${VAR:-default} 格式
+func expandEnvVars(s string) string {
+	return envVarPattern.ReplaceAllStringFunc(s, func(match string) string {
+		// Parse variable name and default value / 解析变量名和默认值
+		parts := envVarPattern.FindStringSubmatch(match)
 		if len(parts) < 2 {
 			return match
 		}
@@ -177,7 +177,7 @@ func expandEnvVars(s string) string {
 			defaultValue = parts[3]
 		}
 
-		// 获取环境变量
+		// Get environment variable / 获取环境变量
 		if value := os.Getenv(varName); value != "" {
 			return value
 		}
@@ -185,7 +185,19 @@ func expandEnvVars(s string) string {
 	})
 }
 
-// GenerateSampleConfig 生成示例配置
+// findEnvVars finds all environment variables in a string / 查找字符串中的所有环境变量
+func findEnvVars(s string) []string {
+	matches := envVarPattern.FindAllStringSubmatch(s, -1)
+	vars := make([]string, 0, len(matches))
+	for _, m := range matches {
+		if len(m) >= 2 {
+			vars = append(vars, m[1])
+		}
+	}
+	return vars
+}
+
+// GenerateSampleConfig generates sample config / 生成示例配置
 func GenerateSampleConfig(full bool) string {
 	if full {
 		return `# Health Check CLI Configuration
@@ -260,57 +272,98 @@ endpoints:
 `
 }
 
-// ValidateConfig 验证配置文件
-func ValidateConfig(cfg *Config) []string {
-	var errors []string
+// ValidationResult contains errors and warnings / 包含错误和警告的验证结果
+type ValidationResult struct {
+	Errors   []string
+	Warnings []string
+}
 
-	// 检查是否有端点
-	if len(cfg.Endpoints) == 0 {
-		errors = append(errors, "no endpoints defined")
+// ValidateConfig validates config file / 验证配置文件
+func ValidateConfig(cfg *Config) []string {
+	result := ValidateConfigWithWarnings(cfg)
+	return result.Errors
+}
+
+// ValidateConfigWithWarnings validates config and returns both errors and warnings / 验证配置并返回错误和警告
+func ValidateConfigWithWarnings(cfg *Config) ValidationResult {
+	result := ValidationResult{
+		Errors:   make([]string, 0),
+		Warnings: make([]string, 0),
 	}
 
-	// 验证每个端点
+	// Check if endpoints exist / 检查是否有端点
+	if len(cfg.Endpoints) == 0 {
+		result.Errors = append(result.Errors, "no endpoints defined")
+	}
+
+	// Track unset environment variables / 跟踪未设置的环境变量
+	unsetEnvVars := make(map[string]bool)
+
+	// Validate each endpoint / 验证每个端点
 	for i, ep := range cfg.Endpoints {
 		prefix := fmt.Sprintf("endpoint #%d", i+1)
 		if ep.Name != "" {
 			prefix = fmt.Sprintf("endpoint '%s'", ep.Name)
 		}
 
-		// URL 必填
+		// URL is required / URL 必填
 		if ep.URL == "" {
-			errors = append(errors, fmt.Sprintf("%s: missing url", prefix))
+			result.Errors = append(result.Errors, fmt.Sprintf("%s: missing url", prefix))
 			continue
 		}
 
-		// URL 格式检查
+		// URL format check / URL 格式检查
 		if !strings.HasPrefix(ep.URL, "http://") && !strings.HasPrefix(ep.URL, "https://") &&
 			!strings.HasPrefix(ep.URL, "${") {
-			errors = append(errors, fmt.Sprintf("%s: url must start with http:// or https://", prefix))
+			result.Errors = append(result.Errors, fmt.Sprintf("%s: url must start with http:// or https://", prefix))
 		}
 
-		// 超时格式检查
-		if ep.Timeout != "" {
-			if _, err := time.ParseDuration(ep.Timeout); err != nil {
-				errors = append(errors, fmt.Sprintf("%s: invalid timeout format '%s'", prefix, ep.Timeout))
+		// Check for unset environment variables in URL / 检查 URL 中未设置的环境变量
+		for _, varName := range findEnvVars(ep.URL) {
+			if os.Getenv(varName) == "" && !unsetEnvVars[varName] {
+				// Check if has default value / 检查是否有默认值
+				if !strings.Contains(ep.URL, "${"+varName+":-") {
+					unsetEnvVars[varName] = true
+					result.Warnings = append(result.Warnings, fmt.Sprintf("%s: environment variable '%s' is not set and has no default value", prefix, varName))
+				}
 			}
 		}
 
-		// 状态码范围检查
+		// Check for unset environment variables in headers / 检查 Headers 中未设置的环境变量
+		for headerName, headerValue := range ep.Headers {
+			for _, varName := range findEnvVars(headerValue) {
+				if os.Getenv(varName) == "" && !unsetEnvVars[varName] {
+					if !strings.Contains(headerValue, "${"+varName+":-") {
+						unsetEnvVars[varName] = true
+						result.Warnings = append(result.Warnings, fmt.Sprintf("%s: header '%s' uses environment variable '%s' which is not set and has no default value", prefix, headerName, varName))
+					}
+				}
+			}
+		}
+
+		// Timeout format check / 超时格式检查
+		if ep.Timeout != "" {
+			if _, err := time.ParseDuration(ep.Timeout); err != nil {
+				result.Errors = append(result.Errors, fmt.Sprintf("%s: invalid timeout format '%s'", prefix, ep.Timeout))
+			}
+		}
+
+		// Status code range check / 状态码范围检查
 		if ep.ExpectedStatus != nil && (*ep.ExpectedStatus < 100 || *ep.ExpectedStatus > 599) {
-			errors = append(errors, fmt.Sprintf("%s: expected_status must be between 100 and 599", prefix))
+			result.Errors = append(result.Errors, fmt.Sprintf("%s: expected_status must be between 100 and 599", prefix))
 		}
 	}
 
-	// 验证默认值
+	// Validate defaults / 验证默认值
 	if cfg.Defaults.Timeout != "" {
 		if _, err := time.ParseDuration(cfg.Defaults.Timeout); err != nil {
-			errors = append(errors, fmt.Sprintf("defaults: invalid timeout format '%s'", cfg.Defaults.Timeout))
+			result.Errors = append(result.Errors, fmt.Sprintf("defaults: invalid timeout format '%s'", cfg.Defaults.Timeout))
 		}
 	}
 
 	if cfg.Defaults.ExpectedStatus != 0 && (cfg.Defaults.ExpectedStatus < 100 || cfg.Defaults.ExpectedStatus > 599) {
-		errors = append(errors, "defaults: expected_status must be between 100 and 599")
+		result.Errors = append(result.Errors, "defaults: expected_status must be between 100 and 599")
 	}
 
-	return errors
+	return result
 }

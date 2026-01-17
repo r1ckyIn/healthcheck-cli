@@ -625,6 +625,118 @@ func TestToCheckerEndpoints_EnvVarInURL(t *testing.T) {
 	}
 }
 
+// TestValidateConfigWithWarnings_EnvVarWarning 测试环境变量警告
+func TestValidateConfigWithWarnings_EnvVarWarning(t *testing.T) {
+	os.Unsetenv("UNSET_TOKEN")
+
+	cfg := &Config{
+		Endpoints: []Endpoint{
+			{
+				Name: "API",
+				URL:  "https://api.example.com",
+				Headers: map[string]string{
+					"Authorization": "Bearer ${UNSET_TOKEN}",
+				},
+			},
+		},
+	}
+
+	result := ValidateConfigWithWarnings(cfg)
+
+	if len(result.Errors) != 0 {
+		t.Errorf("Errors = %v, want empty", result.Errors)
+	}
+	if len(result.Warnings) == 0 {
+		t.Error("Warnings is empty, want warning about unset env var")
+	}
+
+	found := false
+	for _, w := range result.Warnings {
+		if strings.Contains(w, "UNSET_TOKEN") && strings.Contains(w, "not set") {
+			found = true
+			break
+		}
+	}
+	if !found {
+		t.Errorf("Warnings = %v, want to contain warning about UNSET_TOKEN", result.Warnings)
+	}
+}
+
+// TestValidateConfigWithWarnings_EnvVarWithDefault 测试带默认值的环境变量不警告
+func TestValidateConfigWithWarnings_EnvVarWithDefault(t *testing.T) {
+	os.Unsetenv("OPTIONAL_VAR")
+
+	cfg := &Config{
+		Endpoints: []Endpoint{
+			{
+				Name: "API",
+				URL:  "https://api.example.com/${OPTIONAL_VAR:-default}",
+			},
+		},
+	}
+
+	result := ValidateConfigWithWarnings(cfg)
+
+	// 有默认值的环境变量不应该产生警告
+	for _, w := range result.Warnings {
+		if strings.Contains(w, "OPTIONAL_VAR") {
+			t.Errorf("Should not warn about env var with default value: %v", result.Warnings)
+		}
+	}
+}
+
+// TestValidateConfigWithWarnings_EnvVarSet 测试已设置的环境变量不警告
+func TestValidateConfigWithWarnings_EnvVarSet(t *testing.T) {
+	t.Setenv("SET_TOKEN", "my-token")
+
+	cfg := &Config{
+		Endpoints: []Endpoint{
+			{
+				Name: "API",
+				URL:  "https://api.example.com",
+				Headers: map[string]string{
+					"Authorization": "Bearer ${SET_TOKEN}",
+				},
+			},
+		},
+	}
+
+	result := ValidateConfigWithWarnings(cfg)
+
+	for _, w := range result.Warnings {
+		if strings.Contains(w, "SET_TOKEN") {
+			t.Errorf("Should not warn about set env var: %v", result.Warnings)
+		}
+	}
+}
+
+// TestFindEnvVars 测试查找环境变量
+func TestFindEnvVars(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected []string
+	}{
+		{"no vars", []string{}},
+		{"${VAR1}", []string{"VAR1"}},
+		{"${VAR1} and ${VAR2}", []string{"VAR1", "VAR2"}},
+		{"${VAR:-default}", []string{"VAR"}},
+		{"prefix${VAR}suffix", []string{"VAR"}},
+	}
+
+	for _, tt := range tests {
+		result := findEnvVars(tt.input)
+		if len(result) != len(tt.expected) {
+			t.Errorf("findEnvVars(%q) = %v, want %v", tt.input, result, tt.expected)
+			continue
+		}
+		for i, v := range result {
+			if v != tt.expected[i] {
+				t.Errorf("findEnvVars(%q)[%d] = %q, want %q", tt.input, i, v, tt.expected[i])
+			}
+		}
+	}
+}
+
 // createTempFile 创建临时文件
 func createTempFile(t *testing.T, pattern, content string) string {
 	t.Helper()

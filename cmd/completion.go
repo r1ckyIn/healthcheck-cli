@@ -1,14 +1,15 @@
-// completion 命令
-// 生成 Shell 自动补全脚本
+// Completion command / completion 命令
+// Generate shell auto-completion scripts / 生成 Shell 自动补全脚本
 package cmd
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/spf13/cobra"
 )
 
-// completionCmd 是 completion 子命令
+// completionCmd is the completion subcommand / completion 子命令
 var completionCmd = &cobra.Command{
 	Use:   "completion [bash|zsh|fish|powershell]",
 	Short: "Generate shell completion scripts",
@@ -51,23 +52,31 @@ PowerShell:
 	DisableFlagsInUseLine: true,
 	ValidArgs:             []string{"bash", "zsh", "fish", "powershell"},
 	Args:                  cobra.MatchAll(cobra.ExactArgs(1), cobra.OnlyValidArgs),
-	Run:                   runCompletion,
+	RunE:                  runCompletion,
 }
 
 func init() {
 	rootCmd.AddCommand(completionCmd)
 }
 
-// runCompletion 执行 completion 命令
-func runCompletion(cmd *cobra.Command, args []string) {
+// runCompletion executes completion command / 执行 completion 命令
+func runCompletion(cmd *cobra.Command, args []string) error {
+	var err error
+
 	switch args[0] {
 	case "bash":
-		cmd.Root().GenBashCompletion(os.Stdout)
+		err = cmd.Root().GenBashCompletion(os.Stdout)
 	case "zsh":
-		cmd.Root().GenZshCompletion(os.Stdout)
+		err = cmd.Root().GenZshCompletion(os.Stdout)
 	case "fish":
-		cmd.Root().GenFishCompletion(os.Stdout, true)
+		err = cmd.Root().GenFishCompletion(os.Stdout, true)
 	case "powershell":
-		cmd.Root().GenPowerShellCompletionWithDesc(os.Stdout)
+		err = cmd.Root().GenPowerShellCompletionWithDesc(os.Stdout)
 	}
+
+	if err != nil {
+		return fmt.Errorf("failed to generate %s completion: %w", args[0], err)
+	}
+
+	return nil
 }
