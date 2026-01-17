@@ -195,7 +195,7 @@ func TestTableFormatter_NoColor(t *testing.T) {
 		Latency:    50 * time.Millisecond,
 	}
 
-	f.FormatSingle(result)
+	_ = f.FormatSingle(result)
 	output := buf.String()
 
 	// Should not contain ANSI escape codes
@@ -218,7 +218,7 @@ func TestTableFormatter_WithColor(t *testing.T) {
 		Latency:    50 * time.Millisecond,
 	}
 
-	f.FormatSingle(result)
+	_ = f.FormatSingle(result)
 	output := buf.String()
 
 	// Should contain green ANSI escape code
@@ -468,7 +468,7 @@ func TestTableFormatter_FormatBatch_AllHealthy(t *testing.T) {
 		},
 	}
 
-	f.FormatBatch(batch)
+	_ = f.FormatBatch(batch)
 	output := buf.String()
 
 	// All healthy should use green color
@@ -495,7 +495,7 @@ func TestTableFormatter_FormatBatch_AllUnhealthy(t *testing.T) {
 		},
 	}
 
-	f.FormatBatch(batch)
+	_ = f.FormatBatch(batch)
 	output := buf.String()
 
 	// All unhealthy should use red color
@@ -523,7 +523,7 @@ func TestTableFormatter_FormatBatch_PartialHealthy(t *testing.T) {
 		},
 	}
 
-	f.FormatBatch(batch)
+	_ = f.FormatBatch(batch)
 	output := buf.String()
 
 	// Partial healthy should use yellow color
