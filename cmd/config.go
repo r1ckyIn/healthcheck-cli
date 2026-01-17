@@ -1,5 +1,5 @@
-// config 命令组
-// 配置文件管理相关命令
+// Config command group
+// Configuration file management commands
 package cmd
 
 import (
@@ -10,13 +10,13 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// config 命令参数
+// Config command flags
 var (
 	configInitFull     bool
 	configValidatePath string
 )
 
-// configCmd 是 config 命令组
+// configCmd is the config command group
 var configCmd = &cobra.Command{
 	Use:   "config",
 	Short: "Configuration file management",
@@ -27,7 +27,7 @@ Available subcommands:
   validate  - Validate an existing configuration file`,
 }
 
-// configInitCmd 是 config init 子命令
+// configInitCmd is the config init subcommand
 var configInitCmd = &cobra.Command{
 	Use:   "init",
 	Short: "Generate a sample configuration file",
@@ -45,7 +45,7 @@ Examples:
 	Run: runConfigInit,
 }
 
-// configValidateCmd 是 config validate 子命令
+// configValidateCmd is the config validate subcommand
 var configValidateCmd = &cobra.Command{
 	Use:   "validate",
 	Short: "Validate a configuration file",
@@ -70,31 +70,31 @@ func init() {
 	configCmd.AddCommand(configInitCmd)
 	configCmd.AddCommand(configValidateCmd)
 
-	// config init 参数
+	// config init flags
 	configInitCmd.Flags().BoolVar(&configInitFull, "full", false,
 		"Generate full configuration with all available options")
 
-	// config validate 参数
+	// config validate flags
 	configValidateCmd.Flags().StringVarP(&configValidatePath, "config", "c", "endpoints.yaml",
 		"Path to configuration file to validate")
 }
 
-// runConfigInit 执行 config init 命令
+// runConfigInit executes the config init command
 func runConfigInit(cmd *cobra.Command, args []string) {
 	sample := config.GenerateSampleConfig(configInitFull)
 	fmt.Print(sample)
 }
 
-// runConfigValidate 执行 config validate 命令
+// runConfigValidate executes the config validate command
 func runConfigValidate(cmd *cobra.Command, args []string) {
-	// 加载配置文件
+	// Load config file
 	cfg, err := config.Load(configValidatePath)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %s\n", err)
 		os.Exit(2)
 	}
 
-	// 验证配置
+	// Validate config
 	errors := config.ValidateConfig(cfg)
 
 	if len(errors) > 0 {
@@ -105,7 +105,7 @@ func runConfigValidate(cmd *cobra.Command, args []string) {
 		os.Exit(2)
 	}
 
-	// 尝试转换为 endpoints，检查是否能正常解析
+	// Try converting to endpoints to check parsing
 	endpoints, err := cfg.ToCheckerEndpoints()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %s\n", err)
@@ -115,7 +115,7 @@ func runConfigValidate(cmd *cobra.Command, args []string) {
 	fmt.Printf("Configuration is valid.\n")
 	fmt.Printf("  Endpoints: %d\n", len(endpoints))
 
-	// 显示概要信息
+	// Show summary info
 	if len(endpoints) > 0 {
 		fmt.Printf("  Names:\n")
 		for _, ep := range endpoints {

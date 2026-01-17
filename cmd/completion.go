@@ -1,5 +1,5 @@
-// Completion command / completion 命令
-// Generate shell auto-completion scripts / 生成 Shell 自动补全脚本
+// Completion command
+// Generates shell auto-completion scripts
 package cmd
 
 import (
@@ -9,7 +9,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// completionCmd is the completion subcommand / completion 子命令
+// completionCmd is the completion subcommand
 var completionCmd = &cobra.Command{
 	Use:   "completion [bash|zsh|fish|powershell]",
 	Short: "Generate shell completion scripts",
@@ -59,7 +59,7 @@ func init() {
 	rootCmd.AddCommand(completionCmd)
 }
 
-// runCompletion executes completion command / 执行 completion 命令
+// runCompletion executes the completion command
 func runCompletion(cmd *cobra.Command, args []string) error {
 	var err error
 

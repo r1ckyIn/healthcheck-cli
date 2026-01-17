@@ -1,5 +1,5 @@
-// Output formatter unit tests / 输出格式化单元测试
-// Test Table and JSON formatter functionality / 测试 Table 和 JSON 格式化器功能
+// Output formatter unit tests
+// Test Table and JSON formatter functionality
 package output
 
 import (
@@ -13,7 +13,7 @@ import (
 	"github.com/r1ckyIn/healthcheck-cli/internal/checker"
 )
 
-// TestNewFormatter_Table 测试创建 Table 格式化器
+// TestNewFormatter_Table tests creating Table formatter
 func TestNewFormatter_Table(t *testing.T) {
 	var buf bytes.Buffer
 	f := NewFormatter(FormatTable, &buf, false)
@@ -23,7 +23,7 @@ func TestNewFormatter_Table(t *testing.T) {
 	}
 }
 
-// TestNewFormatter_JSON 测试创建 JSON 格式化器
+// TestNewFormatter_JSON tests creating JSON formatter
 func TestNewFormatter_JSON(t *testing.T) {
 	var buf bytes.Buffer
 	f := NewFormatter(FormatJSON, &buf, false)
@@ -33,7 +33,7 @@ func TestNewFormatter_JSON(t *testing.T) {
 	}
 }
 
-// TestNewFormatter_Default 测试默认格式化器
+// TestNewFormatter_Default tests default formatter
 func TestNewFormatter_Default(t *testing.T) {
 	var buf bytes.Buffer
 	f := NewFormatter("unknown", &buf, false)
@@ -43,10 +43,10 @@ func TestNewFormatter_Default(t *testing.T) {
 	}
 }
 
-// TestTableFormatter_FormatSingle_Healthy 测试 Table 格式健康结果
+// TestTableFormatter_FormatSingle_Healthy tests Table format healthy result
 func TestTableFormatter_FormatSingle_Healthy(t *testing.T) {
 	var buf bytes.Buffer
-	f := NewTableFormatter(&buf, true) // 禁用颜色便于测试
+	f := NewTableFormatter(&buf, true) // Disable color for testing
 
 	statusCode := 200
 	result := checker.Result{
@@ -74,7 +74,7 @@ func TestTableFormatter_FormatSingle_Healthy(t *testing.T) {
 	}
 }
 
-// TestTableFormatter_FormatSingle_Unhealthy 测试 Table 格式不健康结果
+// TestTableFormatter_FormatSingle_Unhealthy tests Table format unhealthy result
 func TestTableFormatter_FormatSingle_Unhealthy(t *testing.T) {
 	var buf bytes.Buffer
 	f := NewTableFormatter(&buf, true)
@@ -103,7 +103,7 @@ func TestTableFormatter_FormatSingle_Unhealthy(t *testing.T) {
 	}
 }
 
-// TestTableFormatter_FormatSingle_Timeout 测试 Table 格式超时结果
+// TestTableFormatter_FormatSingle_Timeout tests Table format timeout result
 func TestTableFormatter_FormatSingle_Timeout(t *testing.T) {
 	var buf bytes.Buffer
 	f := NewTableFormatter(&buf, true)
@@ -132,7 +132,7 @@ func TestTableFormatter_FormatSingle_Timeout(t *testing.T) {
 	}
 }
 
-// TestTableFormatter_FormatBatch 测试 Table 格式批量结果
+// TestTableFormatter_FormatBatch tests Table format batch results
 func TestTableFormatter_FormatBatch(t *testing.T) {
 	var buf bytes.Buffer
 	f := NewTableFormatter(&buf, true)
@@ -161,7 +161,7 @@ func TestTableFormatter_FormatBatch(t *testing.T) {
 
 	output := buf.String()
 
-	// 验证表头
+	// Verify header
 	if !strings.Contains(output, "NAME") {
 		t.Error("output should contain 'NAME' header")
 	}
@@ -175,13 +175,13 @@ func TestTableFormatter_FormatBatch(t *testing.T) {
 		t.Error("output should contain 'LATENCY' header")
 	}
 
-	// 验证汇总
+	// Verify summary
 	if !strings.Contains(output, "2/3 healthy") {
 		t.Error("output should contain '2/3 healthy' summary")
 	}
 }
 
-// TestTableFormatter_NoColor 测试禁用颜色
+// TestTableFormatter_NoColor tests disabled color
 func TestTableFormatter_NoColor(t *testing.T) {
 	var buf bytes.Buffer
 	f := NewTableFormatter(&buf, true) // noColor = true
@@ -198,13 +198,13 @@ func TestTableFormatter_NoColor(t *testing.T) {
 	f.FormatSingle(result)
 	output := buf.String()
 
-	// 不应包含 ANSI 转义码
+	// Should not contain ANSI escape codes
 	if strings.Contains(output, "\033[") {
 		t.Error("output should not contain ANSI escape codes when noColor=true")
 	}
 }
 
-// TestTableFormatter_WithColor 测试启用颜色
+// TestTableFormatter_WithColor tests enabled color
 func TestTableFormatter_WithColor(t *testing.T) {
 	var buf bytes.Buffer
 	f := NewTableFormatter(&buf, false) // noColor = false
@@ -221,13 +221,13 @@ func TestTableFormatter_WithColor(t *testing.T) {
 	f.FormatSingle(result)
 	output := buf.String()
 
-	// 应包含绿色 ANSI 转义码
+	// Should contain green ANSI escape code
 	if !strings.Contains(output, colorGreen) {
 		t.Error("output should contain green color code when noColor=false")
 	}
 }
 
-// TestJSONFormatter_FormatSingle_Healthy 测试 JSON 格式健康结果
+// TestJSONFormatter_FormatSingle_Healthy tests JSON format healthy result
 func TestJSONFormatter_FormatSingle_Healthy(t *testing.T) {
 	var buf bytes.Buffer
 	f := NewJSONFormatter(&buf)
@@ -246,7 +246,7 @@ func TestJSONFormatter_FormatSingle_Healthy(t *testing.T) {
 		t.Fatalf("FormatSingle() error = %v", err)
 	}
 
-	// 解析 JSON
+	// Parse JSON
 	var output singleResultJSON
 	if err := json.Unmarshal(buf.Bytes(), &output); err != nil {
 		t.Fatalf("JSON unmarshal error = %v", err)
@@ -269,7 +269,7 @@ func TestJSONFormatter_FormatSingle_Healthy(t *testing.T) {
 	}
 }
 
-// TestJSONFormatter_FormatSingle_Unhealthy 测试 JSON 格式不健康结果
+// TestJSONFormatter_FormatSingle_Unhealthy tests JSON format unhealthy result
 func TestJSONFormatter_FormatSingle_Unhealthy(t *testing.T) {
 	var buf bytes.Buffer
 	f := NewJSONFormatter(&buf)
@@ -302,7 +302,7 @@ func TestJSONFormatter_FormatSingle_Unhealthy(t *testing.T) {
 	}
 }
 
-// TestJSONFormatter_FormatBatch 测试 JSON 格式批量结果
+// TestJSONFormatter_FormatBatch tests JSON format batch results
 func TestJSONFormatter_FormatBatch(t *testing.T) {
 	var buf bytes.Buffer
 	f := NewJSONFormatter(&buf)
@@ -332,12 +332,12 @@ func TestJSONFormatter_FormatBatch(t *testing.T) {
 		t.Fatalf("JSON unmarshal error = %v", err)
 	}
 
-	// 验证时间戳
+	// Verify timestamp
 	if output.Timestamp != "2026-01-17T10:30:00Z" {
 		t.Errorf("Timestamp = %q, want %q", output.Timestamp, "2026-01-17T10:30:00Z")
 	}
 
-	// 验证汇总
+	// Verify summary
 	if output.Summary.Total != 2 {
 		t.Errorf("Summary.Total = %d, want 2", output.Summary.Total)
 	}
@@ -351,12 +351,12 @@ func TestJSONFormatter_FormatBatch(t *testing.T) {
 		t.Errorf("DurationMs = %d, want 250", output.DurationMs)
 	}
 
-	// 验证结果数量
+	// Verify result count
 	if len(output.Results) != 2 {
 		t.Fatalf("len(Results) = %d, want 2", len(output.Results))
 	}
 
-	// 验证第一个结果
+	// Verify first result
 	if output.Results[0].Name != "API 1" {
 		t.Errorf("Results[0].Name = %q, want %q", output.Results[0].Name, "API 1")
 	}
@@ -364,7 +364,7 @@ func TestJSONFormatter_FormatBatch(t *testing.T) {
 		t.Error("Results[0].Healthy = false, want true")
 	}
 
-	// 验证第二个结果
+	// Verify second result
 	if output.Results[1].Name != "API 2" {
 		t.Errorf("Results[1].Name = %q, want %q", output.Results[1].Name, "API 2")
 	}
@@ -373,7 +373,7 @@ func TestJSONFormatter_FormatBatch(t *testing.T) {
 	}
 }
 
-// TestFormatLatency 测试延迟格式化
+// TestFormatLatency tests latency formatting
 func TestFormatLatency(t *testing.T) {
 	tests := []struct {
 		name     string
@@ -397,7 +397,7 @@ func TestFormatLatency(t *testing.T) {
 	}
 }
 
-// TestTruncate 测试字符串截断
+// TestTruncate tests string truncation
 func TestTruncate(t *testing.T) {
 	tests := []struct {
 		name     string
@@ -422,7 +422,7 @@ func TestTruncate(t *testing.T) {
 	}
 }
 
-// TestGetShortError 测试错误信息简化
+// TestGetShortError tests error message simplification
 func TestGetShortError(t *testing.T) {
 	f := &TableFormatter{noColor: true}
 
@@ -449,10 +449,10 @@ func TestGetShortError(t *testing.T) {
 	}
 }
 
-// TestTableFormatter_FormatBatch_AllHealthy 测试全部健康时的汇总颜色
+// TestTableFormatter_FormatBatch_AllHealthy tests summary color when all healthy
 func TestTableFormatter_FormatBatch_AllHealthy(t *testing.T) {
 	var buf bytes.Buffer
-	f := NewTableFormatter(&buf, false) // 启用颜色
+	f := NewTableFormatter(&buf, false) // Enable color
 
 	statusCode := 200
 	batch := checker.BatchResult{
@@ -471,13 +471,13 @@ func TestTableFormatter_FormatBatch_AllHealthy(t *testing.T) {
 	f.FormatBatch(batch)
 	output := buf.String()
 
-	// 全部健康应使用绿色
+	// All healthy should use green color
 	if !strings.Contains(output, colorGreen) {
 		t.Error("all healthy summary should use green color")
 	}
 }
 
-// TestTableFormatter_FormatBatch_AllUnhealthy 测试全部不健康时的汇总颜色
+// TestTableFormatter_FormatBatch_AllUnhealthy tests summary color when all unhealthy
 func TestTableFormatter_FormatBatch_AllUnhealthy(t *testing.T) {
 	var buf bytes.Buffer
 	f := NewTableFormatter(&buf, false)
@@ -498,13 +498,13 @@ func TestTableFormatter_FormatBatch_AllUnhealthy(t *testing.T) {
 	f.FormatBatch(batch)
 	output := buf.String()
 
-	// 全部不健康应使用红色
+	// All unhealthy should use red color
 	if !strings.Contains(output, colorRed) {
 		t.Error("all unhealthy summary should use red color")
 	}
 }
 
-// TestTableFormatter_FormatBatch_PartialHealthy 测试部分健康时的汇总颜色
+// TestTableFormatter_FormatBatch_PartialHealthy tests summary color when partial healthy
 func TestTableFormatter_FormatBatch_PartialHealthy(t *testing.T) {
 	var buf bytes.Buffer
 	f := NewTableFormatter(&buf, false)
@@ -526,13 +526,13 @@ func TestTableFormatter_FormatBatch_PartialHealthy(t *testing.T) {
 	f.FormatBatch(batch)
 	output := buf.String()
 
-	// 部分健康应使用黄色
+	// Partial healthy should use yellow color
 	if !strings.Contains(output, colorYellow) {
 		t.Error("partial healthy summary should use yellow color")
 	}
 }
 
-// TestJSONFormatter_FormatBatch_Empty 测试空结果的 JSON 输出
+// TestJSONFormatter_FormatBatch_Empty tests JSON output for empty results
 func TestJSONFormatter_FormatBatch_Empty(t *testing.T) {
 	var buf bytes.Buffer
 	f := NewJSONFormatter(&buf)
@@ -565,7 +565,7 @@ func TestJSONFormatter_FormatBatch_Empty(t *testing.T) {
 	}
 }
 
-// TestTableFormatter_Colorize 测试颜色函数
+// TestTableFormatter_Colorize tests color function
 func TestTableFormatter_Colorize(t *testing.T) {
 	tests := []struct {
 		name     string
@@ -589,7 +589,7 @@ func TestTableFormatter_Colorize(t *testing.T) {
 	}
 }
 
-// TestOutputFormat_Constants 测试输出格式常量
+// TestOutputFormat_Constants tests output format constants
 func TestOutputFormat_Constants(t *testing.T) {
 	if FormatTable != "table" {
 		t.Errorf("FormatTable = %q, want %q", FormatTable, "table")

@@ -1,5 +1,5 @@
-// check 命令
-// 实现单 URL 健康检查功能
+// Check command
+// Implements single URL health check functionality
 package cmd
 
 import (
@@ -14,7 +14,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// check 命令的参数
+// Check command flags
 var (
 	checkTimeout        time.Duration
 	checkExpectedStatus int
@@ -23,7 +23,7 @@ var (
 	checkOutput         string
 )
 
-// checkCmd 是 check 子命令
+// checkCmd is the check subcommand
 var checkCmd = &cobra.Command{
 	Use:   "check <url>",
 	Short: "Check health of a single URL",
@@ -56,7 +56,7 @@ Examples:
 func init() {
 	rootCmd.AddCommand(checkCmd)
 
-	// 定义参数
+	// Define flags
 	checkCmd.Flags().DurationVarP(&checkTimeout, "timeout", "t", 5*time.Second,
 		"Request timeout (e.g., 5s, 10s, 1m)")
 	checkCmd.Flags().IntVarP(&checkExpectedStatus, "expected-status", "s", 200,
@@ -69,24 +69,24 @@ func init() {
 		"Output format (table/json)")
 }
 
-// runCheck 执行 check 命令
+// runCheck executes the check command
 func runCheck(cmd *cobra.Command, args []string) error {
 	targetURL := args[0]
 
-	// 验证 URL 格式
+	// Validate URL format
 	if err := validateURL(targetURL); err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %s\n", err)
 		os.Exit(2)
 	}
 
-	// 解析 Headers
+	// Parse headers
 	headers, err := parseHeaders(checkHeaders)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %s\n", err)
 		os.Exit(2)
 	}
 
-	// 创建端点配置
+	// Create endpoint configuration
 	endpoint := checker.Endpoint{
 		Name:            targetURL,
 		URL:             targetURL,
@@ -98,11 +98,11 @@ func runCheck(cmd *cobra.Command, args []string) error {
 		Headers:         headers,
 	}
 
-	// 执行检查
+	// Execute check
 	c := checker.New()
 	result := c.Check(endpoint)
 
-	// 格式化输出
+	// Format output
 	formatter := output.NewFormatter(
 		output.OutputFormat(checkOutput),
 		os.Stdout,
@@ -113,7 +113,7 @@ func runCheck(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to format output: %w", err)
 	}
 
-	// 根据结果设置退出码
+	// Set exit code based on result
 	if !result.Healthy {
 		os.Exit(1)
 	}
@@ -121,20 +121,20 @@ func runCheck(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-// validateURL 验证 URL 格式
+// validateURL validates URL format
 func validateURL(rawURL string) error {
-	// 检查是否有协议
+	// Check if URL has protocol
 	if !strings.HasPrefix(rawURL, "http://") && !strings.HasPrefix(rawURL, "https://") {
 		return fmt.Errorf("invalid URL '%s': must start with http:// or https://", rawURL)
 	}
 
-	// 解析 URL
+	// Parse URL
 	parsed, err := url.Parse(rawURL)
 	if err != nil {
 		return fmt.Errorf("invalid URL '%s': %w", rawURL, err)
 	}
 
-	// 检查是否有 host
+	// Check if URL has host
 	if parsed.Host == "" {
 		return fmt.Errorf("invalid URL '%s': missing host", rawURL)
 	}
@@ -142,12 +142,12 @@ func validateURL(rawURL string) error {
 	return nil
 }
 
-// parseHeaders 解析 Header 参数
+// parseHeaders parses header flags
 func parseHeaders(headerStrs []string) (map[string]string, error) {
 	headers := make(map[string]string)
 
 	for _, h := range headerStrs {
-		// 查找第一个冒号
+		// Find first colon
 		idx := strings.Index(h, ":")
 		if idx == -1 {
 			return nil, fmt.Errorf("invalid header format '%s': expected 'Key: Value'", h)

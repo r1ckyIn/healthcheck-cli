@@ -1,5 +1,5 @@
-// JSON 格式输出
-// 实现机器可读的 JSON 格式输出
+// JSON format output
+// Implements machine-readable JSON format output
 package output
 
 import (
@@ -9,19 +9,19 @@ import (
 	"github.com/r1ckyIn/healthcheck-cli/internal/checker"
 )
 
-// JSONFormatter 实现 JSON 格式输出
+// JSONFormatter implements JSON format output
 type JSONFormatter struct {
 	writer io.Writer
 }
 
-// NewJSONFormatter 创建 JSON 格式化器
+// NewJSONFormatter creates a JSON formatter
 func NewJSONFormatter(w io.Writer) *JSONFormatter {
 	return &JSONFormatter{
 		writer: w,
 	}
 }
 
-// singleResultJSON 单个结果的 JSON 结构
+// singleResultJSON is the JSON structure for single result
 type singleResultJSON struct {
 	URL        string  `json:"url"`
 	Healthy    bool    `json:"healthy"`
@@ -30,7 +30,7 @@ type singleResultJSON struct {
 	Error      *string `json:"error"`
 }
 
-// batchResultJSON 批量结果的 JSON 结构
+// batchResultJSON is the JSON structure for batch results
 type batchResultJSON struct {
 	Timestamp  string            `json:"timestamp"`
 	DurationMs int64             `json:"duration_ms"`
@@ -38,14 +38,14 @@ type batchResultJSON struct {
 	Results    []resultItemJSON  `json:"results"`
 }
 
-// summaryJSON 汇总信息的 JSON 结构
+// summaryJSON is the JSON structure for summary information
 type summaryJSON struct {
 	Total     int `json:"total"`
 	Healthy   int `json:"healthy"`
 	Unhealthy int `json:"unhealthy"`
 }
 
-// resultItemJSON 结果项的 JSON 结构
+// resultItemJSON is the JSON structure for result item
 type resultItemJSON struct {
 	Name       string  `json:"name"`
 	URL        string  `json:"url"`
@@ -55,7 +55,7 @@ type resultItemJSON struct {
 	Error      *string `json:"error"`
 }
 
-// FormatSingle 格式化单个检查结果
+// FormatSingle formats a single check result
 func (f *JSONFormatter) FormatSingle(result checker.Result) error {
 	output := singleResultJSON{
 		URL:        result.URL,
@@ -63,13 +63,13 @@ func (f *JSONFormatter) FormatSingle(result checker.Result) error {
 		StatusCode: result.StatusCode,
 	}
 
-	// 计算延迟（毫秒）
+	// Calculate latency (milliseconds)
 	if result.Healthy || result.StatusCode != nil {
 		latencyMs := result.Latency.Milliseconds()
 		output.LatencyMs = &latencyMs
 	}
 
-	// 错误信息
+	// Error message
 	if result.Error != nil {
 		errStr := result.Error.Error()
 		output.Error = &errStr
@@ -80,7 +80,7 @@ func (f *JSONFormatter) FormatSingle(result checker.Result) error {
 	return encoder.Encode(output)
 }
 
-// FormatBatch 格式化批量检查结果
+// FormatBatch formats batch check results
 func (f *JSONFormatter) FormatBatch(batch checker.BatchResult) error {
 	output := batchResultJSON{
 		Timestamp:  batch.Timestamp.Format("2006-01-02T15:04:05Z"),
@@ -93,7 +93,7 @@ func (f *JSONFormatter) FormatBatch(batch checker.BatchResult) error {
 		Results: make([]resultItemJSON, len(batch.Results)),
 	}
 
-	// 转换每个结果
+	// Convert each result
 	for i, result := range batch.Results {
 		item := resultItemJSON{
 			Name:       result.Name,
@@ -102,13 +102,13 @@ func (f *JSONFormatter) FormatBatch(batch checker.BatchResult) error {
 			StatusCode: result.StatusCode,
 		}
 
-		// 延迟时间
+		// Latency time
 		if result.Healthy || result.StatusCode != nil {
 			latencyMs := result.Latency.Milliseconds()
 			item.LatencyMs = &latencyMs
 		}
 
-		// 错误信息
+		// Error message
 		if result.Error != nil {
 			errStr := result.Error.Error()
 			item.Error = &errStr

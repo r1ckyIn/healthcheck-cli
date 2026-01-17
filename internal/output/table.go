@@ -1,5 +1,5 @@
-// Table 格式输出
-// 实现人类可读的表格格式输出
+// Table format output
+// Implements human-readable table format output
 package output
 
 import (
@@ -11,7 +11,7 @@ import (
 	"github.com/r1ckyIn/healthcheck-cli/internal/checker"
 )
 
-// ANSI 颜色代码
+// ANSI color codes
 const (
 	colorReset  = "\033[0m"
 	colorRed    = "\033[31m"
@@ -19,13 +19,13 @@ const (
 	colorYellow = "\033[33m"
 )
 
-// TableFormatter 实现表格格式输出
+// TableFormatter implements table format output
 type TableFormatter struct {
 	writer  io.Writer
 	noColor bool
 }
 
-// NewTableFormatter 创建表格格式化器
+// NewTableFormatter creates a table formatter
 func NewTableFormatter(w io.Writer, noColor bool) *TableFormatter {
 	return &TableFormatter{
 		writer:  w,
@@ -33,7 +33,7 @@ func NewTableFormatter(w io.Writer, noColor bool) *TableFormatter {
 	}
 }
 
-// FormatSingle 格式化单个检查结果
+// FormatSingle formats a single check result
 func (f *TableFormatter) FormatSingle(result checker.Result) error {
 	var status string
 	var latency string
@@ -48,7 +48,7 @@ func (f *TableFormatter) FormatSingle(result checker.Result) error {
 		if result.StatusCode != nil {
 			status += fmt.Sprintf(" %d", *result.StatusCode)
 		} else if result.Error != nil {
-			// 提取简短错误信息
+			// Extract short error message
 			status += " " + f.getShortError(result.Error)
 		}
 	}
@@ -63,9 +63,9 @@ func (f *TableFormatter) FormatSingle(result checker.Result) error {
 	return err
 }
 
-// FormatBatch 格式化批量检查结果
+// FormatBatch formats batch check results
 func (f *TableFormatter) FormatBatch(batch checker.BatchResult) error {
-	// 计算列宽
+	// Calculate column widths
 	nameWidth := 4  // "NAME"
 	urlWidth := 3   // "URL"
 
@@ -78,7 +78,7 @@ func (f *TableFormatter) FormatBatch(batch checker.BatchResult) error {
 		}
 	}
 
-	// 限制最大宽度
+	// Limit maximum width
 	if nameWidth > 30 {
 		nameWidth = 30
 	}
@@ -86,7 +86,7 @@ func (f *TableFormatter) FormatBatch(batch checker.BatchResult) error {
 		urlWidth = 50
 	}
 
-	// 打印表头
+	// Print header
 	header := fmt.Sprintf("%-*s  %-*s  %-10s  %s\n",
 		nameWidth, "NAME",
 		urlWidth, "URL",
@@ -97,14 +97,14 @@ func (f *TableFormatter) FormatBatch(batch checker.BatchResult) error {
 		return err
 	}
 
-	// 打印每一行
+	// Print each row
 	for _, result := range batch.Results {
 		if err := f.formatRow(result, nameWidth, urlWidth); err != nil {
 			return err
 		}
 	}
 
-	// 打印汇总
+	// Print summary
 	fmt.Fprintln(f.writer)
 	summaryColor := colorGreen
 	if batch.Summary.Unhealthy > 0 {
@@ -119,9 +119,9 @@ func (f *TableFormatter) FormatBatch(batch checker.BatchResult) error {
 	return err
 }
 
-// formatRow 格式化单行输出
+// formatRow formats a single row output
 func (f *TableFormatter) formatRow(result checker.Result, nameWidth, urlWidth int) error {
-	// 截断过长的名称和 URL
+	// Truncate long names and URLs
 	name := truncate(result.Name, nameWidth)
 	url := truncate(result.URL, urlWidth)
 
@@ -156,7 +156,7 @@ func (f *TableFormatter) formatRow(result checker.Result, nameWidth, urlWidth in
 	return err
 }
 
-// colorize 添加颜色
+// colorize adds color
 func (f *TableFormatter) colorize(text, color string) string {
 	if f.noColor {
 		return text
@@ -164,7 +164,7 @@ func (f *TableFormatter) colorize(text, color string) string {
 	return color + text + colorReset
 }
 
-// getShortError 获取简短的错误描述
+// getShortError gets short error description
 func (f *TableFormatter) getShortError(err error) string {
 	errStr := err.Error()
 
@@ -178,7 +178,7 @@ func (f *TableFormatter) getShortError(err error) string {
 	case strings.Contains(errStr, "certificate"):
 		return "ssl error"
 	default:
-		// 截取第一部分
+		// Extract first part
 		if idx := strings.Index(errStr, ":"); idx > 0 && idx < 20 {
 			return errStr[:idx]
 		}
@@ -189,7 +189,7 @@ func (f *TableFormatter) getShortError(err error) string {
 	}
 }
 
-// formatLatency 格式化延迟时间
+// formatLatency formats latency time
 func formatLatency(d time.Duration) string {
 	ms := d.Milliseconds()
 	if ms < 1000 {
@@ -198,7 +198,7 @@ func formatLatency(d time.Duration) string {
 	return fmt.Sprintf("%.1fs", float64(ms)/1000)
 }
 
-// truncate 截断字符串
+// truncate truncates a string
 func truncate(s string, maxLen int) string {
 	if len(s) <= maxLen {
 		return s

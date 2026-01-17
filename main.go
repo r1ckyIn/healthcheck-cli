@@ -1,5 +1,5 @@
-// Health Check CLI 入口
-// 健康检查命令行工具的程序入口点
+// Health Check CLI entry point
+// Program entry point for the health check command-line tool
 package main
 
 import (

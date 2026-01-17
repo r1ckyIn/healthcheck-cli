@@ -1,5 +1,5 @@
-// 根命令配置
-// 定义 CLI 的根命令和全局参数
+// Root command configuration
+// Defines the CLI root command and global flags
 package cmd
 
 import (
@@ -8,12 +8,12 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// 全局变量
+// Global variables
 var (
 	noColor bool
 )
 
-// rootCmd 是 CLI 的根命令
+// rootCmd is the CLI root command
 var rootCmd = &cobra.Command{
 	Use:   "healthcheck",
 	Short: "A CLI tool for HTTP endpoint health checking",
@@ -26,22 +26,22 @@ Example usage:
   healthcheck config init > endpoints.yaml`,
 }
 
-// Execute 执行根命令
+// Execute executes the root command
 func Execute() error {
 	return rootCmd.Execute()
 }
 
 func init() {
-	// 全局参数
+	// Global flags
 	rootCmd.PersistentFlags().BoolVar(&noColor, "no-color", false, "Disable colored output")
 
-	// 检测是否在非 TTY 环境下运行，自动禁用颜色
+	// Detect if running in non-TTY environment, auto-disable colors
 	if fileInfo, _ := os.Stdout.Stat(); (fileInfo.Mode() & os.ModeCharDevice) == 0 {
 		noColor = true
 	}
 }
 
-// IsNoColor 返回是否禁用颜色
+// IsNoColor returns whether colors are disabled
 func IsNoColor() bool {
 	return noColor
 }

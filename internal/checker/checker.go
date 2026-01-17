@@ -1,5 +1,5 @@
-// Core health check logic / 核心检查逻辑
-// Implement HTTP endpoint health check functionality / 实现 HTTP 端点健康检查的核心功能
+// Core health check logic
+// Implements HTTP endpoint health check functionality
 package checker
 
 import (
@@ -12,19 +12,19 @@ import (
 	"time"
 )
 
-// Checker is the health checker / 健康检查器
+// Checker is the health checker
 type Checker struct {
-	// Cached clients for different configurations / 不同配置的缓存客户端
+	// Cached clients for different configurations
 	// Key format: "secure-follow", "secure-nofollow", "insecure-follow", "insecure-nofollow"
 	clients     map[string]*http.Client
 	clientMu    sync.RWMutex
 	concurrency int
 }
 
-// Option is Checker configuration option / Checker 的配置选项
+// Option is Checker configuration option
 type Option func(*Checker)
 
-// WithConcurrency sets maximum concurrency / 设置最大并发数
+// WithConcurrency sets maximum concurrency
 func WithConcurrency(n int) Option {
 	return func(c *Checker) {
 		if n > 0 {
@@ -33,7 +33,7 @@ func WithConcurrency(n int) Option {
 	}
 }
 
-// New creates a new health checker / 创建一个新的健康检查器
+// New creates a new health checker
 func New(opts ...Option) *Checker {
 	c := &Checker{
 		clients:     make(map[string]*http.Client),
@@ -47,7 +47,7 @@ func New(opts ...Option) *Checker {
 	return c
 }
 
-// getClientKey generates cache key for client based on endpoint config / 根据端点配置生成客户端缓存键
+// getClientKey generates cache key for client based on endpoint config
 func getClientKey(insecure, followRedirects bool) string {
 	security := "secure"
 	if insecure {
@@ -60,11 +60,11 @@ func getClientKey(insecure, followRedirects bool) string {
 	return security + "-" + redirect
 }
 
-// getClient returns appropriate HTTP client based on endpoint config / 根据端点配置返回合适的 HTTP 客户端
+// getClient returns appropriate HTTP client based on endpoint config
 func (c *Checker) getClient(ep Endpoint) *http.Client {
 	key := getClientKey(ep.Insecure, ep.FollowRedirects)
 
-	// Try to get existing client / 尝试获取已存在的客户端
+	// Try to get existing client
 	c.clientMu.RLock()
 	if client, ok := c.clients[key]; ok {
 		c.clientMu.RUnlock()
@@ -72,11 +72,11 @@ func (c *Checker) getClient(ep Endpoint) *http.Client {
 	}
 	c.clientMu.RUnlock()
 
-	// Create new client / 创建新客户端
+	// Create new client
 	c.clientMu.Lock()
 	defer c.clientMu.Unlock()
 
-	// Double check after acquiring write lock / 获取写锁后再次检查
+	// Double check after acquiring write lock
 	if client, ok := c.clients[key]; ok {
 		return client
 	}
@@ -92,7 +92,7 @@ func (c *Checker) getClient(ep Endpoint) *http.Client {
 		},
 	}
 
-	// Configure redirect handling / 配置重定向处理
+	// Configure redirect handling
 	if !ep.FollowRedirects {
 		client.CheckRedirect = func(req *http.Request, via []*http.Request) error {
 			return http.ErrUseLastResponse
@@ -103,43 +103,43 @@ func (c *Checker) getClient(ep Endpoint) *http.Client {
 	return client
 }
 
-// Check checks single endpoint health status / 检查单个端点的健康状态
+// Check checks single endpoint health status
 func (c *Checker) Check(ep Endpoint) Result {
 	return c.CheckWithContext(context.Background(), ep)
 }
 
-// CheckWithContext checks single endpoint with context support / 带 context 支持的单个端点检查
+// CheckWithContext checks single endpoint with context support
 func (c *Checker) CheckWithContext(ctx context.Context, ep Endpoint) Result {
 	result := Result{
 		Name: ep.Name,
 		URL:  ep.URL,
 	}
 
-	// Create context with timeout / 创建带超时的 context
+	// Create context with timeout
 	ctx, cancel := context.WithTimeout(ctx, ep.Timeout)
 	defer cancel()
 
-	// Get HTTP client / 获取 HTTP 客户端
+	// Get HTTP client
 	client := c.getClient(ep)
 
-	// Create request / 创建请求
+	// Create request
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, ep.URL, nil)
 	if err != nil {
 		result.Error = fmt.Errorf("failed to create request: %w", err)
 		return result
 	}
 
-	// Add custom headers / 添加自定义 Headers
+	// Add custom headers
 	for key, value := range ep.Headers {
 		req.Header.Set(key, value)
 	}
 
-	// Set User-Agent / 设置 User-Agent
+	// Set User-Agent
 	if req.Header.Get("User-Agent") == "" {
 		req.Header.Set("User-Agent", "healthcheck-cli/1.0")
 	}
 
-	// Execute request and measure time / 执行请求并计时
+	// Execute request and measure time
 	start := time.Now()
 	resp, err := client.Do(req)
 	result.Latency = time.Since(start)
@@ -150,10 +150,10 @@ func (c *Checker) CheckWithContext(ctx context.Context, ep Endpoint) Result {
 	}
 	defer resp.Body.Close()
 
-	// Record status code / 记录状态码
+	// Record status code
 	result.StatusCode = &resp.StatusCode
 
-	// Check if status code matches expected / 检查状态码是否符合期望
+	// Check if status code matches expected
 	if resp.StatusCode == ep.ExpectedStatus {
 		result.Healthy = true
 	} else {
@@ -163,17 +163,17 @@ func (c *Checker) CheckWithContext(ctx context.Context, ep Endpoint) Result {
 	return result
 }
 
-// CheckWithRetry performs health check with retry / 带重试的健康检查
+// CheckWithRetry performs health check with retry
 func (c *Checker) CheckWithRetry(ep Endpoint) Result {
 	return c.CheckWithRetryContext(context.Background(), ep)
 }
 
-// CheckWithRetryContext performs health check with retry and context / 带重试和 context 的健康检查
+// CheckWithRetryContext performs health check with retry and context
 func (c *Checker) CheckWithRetryContext(ctx context.Context, ep Endpoint) Result {
 	var result Result
 
 	for i := 0; i <= ep.Retries; i++ {
-		// Check if context is cancelled / 检查 context 是否已取消
+		// Check if context is cancelled
 		select {
 		case <-ctx.Done():
 			result.Error = ctx.Err()
@@ -186,7 +186,7 @@ func (c *Checker) CheckWithRetryContext(ctx context.Context, ep Endpoint) Result
 			return result
 		}
 
-		// Wait before retry if there are more attempts / 如果还有重试机会，等待一小段时间
+		// Wait before retry if there are more attempts
 		if i < ep.Retries {
 			select {
 			case <-ctx.Done():
@@ -200,18 +200,18 @@ func (c *Checker) CheckWithRetryContext(ctx context.Context, ep Endpoint) Result
 	return result
 }
 
-// indexedResult holds result with its index / 带索引的结果
+// indexedResult holds result with its index
 type indexedResult struct {
 	idx    int
 	result Result
 }
 
-// CheckAll concurrently checks multiple endpoints / 并发检查多个端点
+// CheckAll concurrently checks multiple endpoints
 func (c *Checker) CheckAll(endpoints []Endpoint) BatchResult {
 	return c.CheckAllWithContext(context.Background(), endpoints)
 }
 
-// CheckAllWithContext concurrently checks multiple endpoints with context / 带 context 的并发检查多个端点
+// CheckAllWithContext concurrently checks multiple endpoints with context
 func (c *Checker) CheckAllWithContext(ctx context.Context, endpoints []Endpoint) BatchResult {
 	startTime := time.Now()
 	results := make([]Result, len(endpoints))
@@ -224,7 +224,7 @@ func (c *Checker) CheckAllWithContext(ctx context.Context, endpoints []Endpoint)
 		}
 	}
 
-	// Use channel for collecting results safely / 使用 channel 安全地收集结果
+	// Use channel for collecting results safely
 	resultChan := make(chan indexedResult, len(endpoints))
 	sem := make(chan struct{}, c.concurrency)
 	var wg sync.WaitGroup
@@ -234,7 +234,7 @@ func (c *Checker) CheckAllWithContext(ctx context.Context, endpoints []Endpoint)
 		go func(idx int, endpoint Endpoint) {
 			defer wg.Done()
 
-			// Acquire semaphore / 获取信号量
+			// Acquire semaphore
 			select {
 			case sem <- struct{}{}:
 				defer func() { <-sem }()
@@ -246,7 +246,7 @@ func (c *Checker) CheckAllWithContext(ctx context.Context, endpoints []Endpoint)
 				return
 			}
 
-			// Execute check with retry / 执行检查（带重试）
+			// Execute check with retry
 			resultChan <- indexedResult{
 				idx:    idx,
 				result: c.CheckWithRetryContext(ctx, endpoint),
@@ -254,13 +254,13 @@ func (c *Checker) CheckAllWithContext(ctx context.Context, endpoints []Endpoint)
 		}(i, ep)
 	}
 
-	// Close channel when all goroutines complete / 当所有 goroutine 完成时关闭 channel
+	// Close channel when all goroutines complete
 	go func() {
 		wg.Wait()
 		close(resultChan)
 	}()
 
-	// Collect results / 收集结果
+	// Collect results
 	for r := range resultChan {
 		results[r.idx] = r.result
 	}
@@ -272,11 +272,11 @@ func (c *Checker) CheckAllWithContext(ctx context.Context, endpoints []Endpoint)
 	}
 }
 
-// categorizeError categorizes error type / 分类错误类型
+// categorizeError categorizes error type
 func (c *Checker) categorizeError(err error) error {
 	errStr := err.Error()
 
-	// Categorize based on error message / 根据错误信息分类
+	// Categorize based on error message
 	switch {
 	case strings.Contains(errStr, "no such host"):
 		return fmt.Errorf("DNS resolution failed: %w", err)
@@ -295,7 +295,7 @@ func (c *Checker) categorizeError(err error) error {
 	}
 }
 
-// calculateSummary calculates summary info / 计算汇总信息
+// calculateSummary calculates summary info
 func (c *Checker) calculateSummary(results []Result, duration time.Duration) Summary {
 	summary := Summary{
 		Total:    len(results),

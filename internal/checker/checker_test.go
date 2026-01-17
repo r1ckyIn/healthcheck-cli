@@ -1,5 +1,5 @@
-// Checker unit tests / 检查器单元测试
-// Test core health check functionality / 测试健康检查核心功能
+// Checker unit tests
+// Tests core health check functionality
 package checker
 
 import (
@@ -12,7 +12,7 @@ import (
 	"time"
 )
 
-// TestDefaultEndpoint 测试默认端点配置
+// TestDefaultEndpoint tests default endpoint configuration
 func TestDefaultEndpoint(t *testing.T) {
 	url := "https://example.com/health"
 	ep := DefaultEndpoint(url)
@@ -43,7 +43,7 @@ func TestDefaultEndpoint(t *testing.T) {
 	}
 }
 
-// TestNew 测试检查器创建
+// TestNew tests checker creation
 func TestNew(t *testing.T) {
 	c := New()
 	if c == nil {
@@ -54,7 +54,7 @@ func TestNew(t *testing.T) {
 	}
 }
 
-// TestWithConcurrency 测试并发数配置选项
+// TestWithConcurrency tests concurrency configuration option
 func TestWithConcurrency(t *testing.T) {
 	tests := []struct {
 		name     string
@@ -62,8 +62,8 @@ func TestWithConcurrency(t *testing.T) {
 		expected int
 	}{
 		{"valid concurrency", 5, 5},
-		{"zero concurrency", 0, 10},      // 无效值保持默认
-		{"negative concurrency", -1, 10}, // 无效值保持默认
+		{"zero concurrency", 0, 10},      // Invalid value keeps default
+		{"negative concurrency", -1, 10}, // Invalid value keeps default
 		{"large concurrency", 100, 100},
 	}
 
@@ -77,9 +77,9 @@ func TestWithConcurrency(t *testing.T) {
 	}
 }
 
-// TestCheck_Success 测试成功的健康检查
+// TestCheck_Success tests successful health check
 func TestCheck_Success(t *testing.T) {
-	// 创建模拟服务器
+	// Create mock server
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("OK"))
@@ -110,7 +110,7 @@ func TestCheck_Success(t *testing.T) {
 	}
 }
 
-// TestCheck_UnexpectedStatus 测试状态码不匹配
+// TestCheck_UnexpectedStatus tests status code mismatch
 func TestCheck_UnexpectedStatus(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -138,7 +138,7 @@ func TestCheck_UnexpectedStatus(t *testing.T) {
 	}
 }
 
-// TestCheck_CustomExpectedStatus 测试自定义期望状态码
+// TestCheck_CustomExpectedStatus tests custom expected status code
 func TestCheck_CustomExpectedStatus(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusCreated)
@@ -150,7 +150,7 @@ func TestCheck_CustomExpectedStatus(t *testing.T) {
 		Name:           "test-server",
 		URL:            server.URL,
 		Timeout:        5 * time.Second,
-		ExpectedStatus: 201, // 期望 201
+		ExpectedStatus: 201, // Expect 201
 	}
 
 	result := c.Check(ep)
@@ -160,7 +160,7 @@ func TestCheck_CustomExpectedStatus(t *testing.T) {
 	}
 }
 
-// TestCheck_Timeout 测试请求超时
+// TestCheck_Timeout tests request timeout
 func TestCheck_Timeout(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		time.Sleep(200 * time.Millisecond)
@@ -172,7 +172,7 @@ func TestCheck_Timeout(t *testing.T) {
 	ep := Endpoint{
 		Name:           "slow-server",
 		URL:            server.URL,
-		Timeout:        50 * time.Millisecond, // 超时时间短于服务器响应时间
+		Timeout:        50 * time.Millisecond, // Timeout shorter than server response time
 		ExpectedStatus: 200,
 	}
 
@@ -189,7 +189,7 @@ func TestCheck_Timeout(t *testing.T) {
 	}
 }
 
-// TestCheck_CustomHeaders 测试自定义请求头
+// TestCheck_CustomHeaders tests custom request headers
 func TestCheck_CustomHeaders(t *testing.T) {
 	var receivedHeaders http.Header
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -220,7 +220,7 @@ func TestCheck_CustomHeaders(t *testing.T) {
 	}
 }
 
-// TestCheck_UserAgent 测试默认 User-Agent
+// TestCheck_UserAgent tests default User-Agent
 func TestCheck_UserAgent(t *testing.T) {
 	var receivedUA string
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -244,7 +244,7 @@ func TestCheck_UserAgent(t *testing.T) {
 	}
 }
 
-// TestCheck_NoFollowRedirects 测试不跟随重定向
+// TestCheck_NoFollowRedirects tests not following redirects
 func TestCheck_NoFollowRedirects(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/redirected", http.StatusMovedPermanently)
@@ -256,7 +256,7 @@ func TestCheck_NoFollowRedirects(t *testing.T) {
 		Name:            "redirect-server",
 		URL:             server.URL,
 		Timeout:         5 * time.Second,
-		ExpectedStatus:  301, // 期望重定向状态码
+		ExpectedStatus:  301, // Expect redirect status code
 		FollowRedirects: false,
 	}
 
@@ -270,7 +270,7 @@ func TestCheck_NoFollowRedirects(t *testing.T) {
 	}
 }
 
-// TestCheckWithRetry_SuccessOnFirstTry 测试首次成功无需重试
+// TestCheckWithRetry_SuccessOnFirstTry tests success on first try without retry
 func TestCheckWithRetry_SuccessOnFirstTry(t *testing.T) {
 	callCount := 0
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -298,7 +298,7 @@ func TestCheckWithRetry_SuccessOnFirstTry(t *testing.T) {
 	}
 }
 
-// TestCheckWithRetry_SuccessAfterRetry 测试重试后成功
+// TestCheckWithRetry_SuccessAfterRetry tests success after retry
 func TestCheckWithRetry_SuccessAfterRetry(t *testing.T) {
 	callCount := 0
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -330,7 +330,7 @@ func TestCheckWithRetry_SuccessAfterRetry(t *testing.T) {
 	}
 }
 
-// TestCheckWithRetry_AllFailed 测试所有重试都失败
+// TestCheckWithRetry_AllFailed tests all retries failed
 func TestCheckWithRetry_AllFailed(t *testing.T) {
 	callCount := 0
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -353,15 +353,15 @@ func TestCheckWithRetry_AllFailed(t *testing.T) {
 	if result.Healthy {
 		t.Error("Healthy = true, want false")
 	}
-	// 初始尝试 + 2次重试 = 3次
+	// Initial attempt + 2 retries = 3 times
 	if callCount != 3 {
 		t.Errorf("callCount = %d, want 3", callCount)
 	}
 }
 
-// TestCheckAll 测试并发批量检查
+// TestCheckAll tests concurrent batch check
 func TestCheckAll(t *testing.T) {
-	// 创建多个模拟服务器
+	// Create multiple mock servers
 	server1 := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	}))
@@ -386,12 +386,12 @@ func TestCheckAll(t *testing.T) {
 
 	batch := c.CheckAll(endpoints)
 
-	// 验证结果数量
+	// Verify result count
 	if len(batch.Results) != 3 {
 		t.Errorf("len(Results) = %d, want 3", len(batch.Results))
 	}
 
-	// 验证结果顺序保持
+	// Verify result order preserved
 	if batch.Results[0].Name != "server1" {
 		t.Errorf("Results[0].Name = %q, want %q", batch.Results[0].Name, "server1")
 	}
@@ -402,7 +402,7 @@ func TestCheckAll(t *testing.T) {
 		t.Errorf("Results[2].Name = %q, want %q", batch.Results[2].Name, "server3")
 	}
 
-	// 验证汇总
+	// Verify summary
 	if batch.Summary.Total != 3 {
 		t.Errorf("Summary.Total = %d, want 3", batch.Summary.Total)
 	}
@@ -414,7 +414,7 @@ func TestCheckAll(t *testing.T) {
 	}
 }
 
-// TestCheckAll_EmptyEndpoints 测试空端点列表
+// TestCheckAll_EmptyEndpoints tests empty endpoint list
 func TestCheckAll_EmptyEndpoints(t *testing.T) {
 	c := New()
 	batch := c.CheckAll([]Endpoint{})
@@ -427,7 +427,7 @@ func TestCheckAll_EmptyEndpoints(t *testing.T) {
 	}
 }
 
-// TestCategorizeError 测试错误分类
+// TestCategorizeError tests error categorization
 func TestCategorizeError(t *testing.T) {
 	c := New()
 
@@ -454,7 +454,7 @@ func TestCategorizeError(t *testing.T) {
 	}
 }
 
-// TestCalculateSummary 测试汇总计算
+// TestCalculateSummary tests summary calculation
 func TestCalculateSummary(t *testing.T) {
 	c := New()
 
@@ -482,7 +482,7 @@ func TestCalculateSummary(t *testing.T) {
 	}
 }
 
-// TestCalculateSummary_Empty 测试空结果汇总
+// TestCalculateSummary_Empty tests empty result summary
 func TestCalculateSummary_Empty(t *testing.T) {
 	c := New()
 
@@ -499,7 +499,7 @@ func TestCalculateSummary_Empty(t *testing.T) {
 	}
 }
 
-// TestCheck_InvalidURL 测试无效 URL
+// TestCheck_InvalidURL tests invalid URL
 func TestCheck_InvalidURL(t *testing.T) {
 	c := New()
 	ep := Endpoint{
@@ -519,7 +519,7 @@ func TestCheck_InvalidURL(t *testing.T) {
 	}
 }
 
-// TestCheckWithContext 测试带 context 的检查
+// TestCheckWithContext tests check with context
 func TestCheckWithContext(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
@@ -542,7 +542,7 @@ func TestCheckWithContext(t *testing.T) {
 	}
 }
 
-// TestCheckWithContext_Cancelled 测试 context 取消
+// TestCheckWithContext_Cancelled tests context cancellation
 func TestCheckWithContext_Cancelled(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		time.Sleep(200 * time.Millisecond)
@@ -552,7 +552,7 @@ func TestCheckWithContext_Cancelled(t *testing.T) {
 
 	c := New()
 	ctx, cancel := context.WithCancel(context.Background())
-	cancel() // 立即取消
+	cancel() // Cancel immediately
 
 	ep := Endpoint{
 		Name:           "test-server",
@@ -571,7 +571,7 @@ func TestCheckWithContext_Cancelled(t *testing.T) {
 	}
 }
 
-// TestCheckAllWithContext 测试带 context 的批量检查
+// TestCheckAllWithContext tests batch check with context
 func TestCheckAllWithContext(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
@@ -594,7 +594,7 @@ func TestCheckAllWithContext(t *testing.T) {
 	}
 }
 
-// TestCategorizeError_ContextCanceled 测试 context 取消错误分类
+// TestCategorizeError_ContextCanceled tests context canceled error categorization
 func TestCategorizeError_ContextCanceled(t *testing.T) {
 	c := New()
 	err := errors.New("context canceled")
@@ -605,7 +605,7 @@ func TestCategorizeError_ContextCanceled(t *testing.T) {
 	}
 }
 
-// TestGetClientKey 测试客户端缓存键生成
+// TestGetClientKey tests client cache key generation
 func TestGetClientKey(t *testing.T) {
 	tests := []struct {
 		insecure        bool

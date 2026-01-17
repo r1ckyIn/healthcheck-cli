@@ -1,5 +1,5 @@
-// Config module unit tests / 配置模块单元测试
-// Test config file parsing, validation and conversion / 测试配置文件解析、验证和转换功能
+// Config module unit tests
+// Test config file parsing, validation and conversion
 package config
 
 import (
@@ -10,9 +10,9 @@ import (
 	"time"
 )
 
-// TestLoad_Success 测试成功加载配置文件
+// TestLoad_Success tests successful config file loading
 func TestLoad_Success(t *testing.T) {
-	// 创建临时配置文件
+	// Create temporary config file
 	content := `
 defaults:
   timeout: 10s
@@ -48,7 +48,7 @@ endpoints:
 	}
 }
 
-// TestLoad_FileNotFound 测试文件不存在
+// TestLoad_FileNotFound tests file not found error
 func TestLoad_FileNotFound(t *testing.T) {
 	_, err := Load("/nonexistent/path/config.yaml")
 	if err == nil {
@@ -59,7 +59,7 @@ func TestLoad_FileNotFound(t *testing.T) {
 	}
 }
 
-// TestLoad_InvalidYAML 测试无效 YAML 格式
+// TestLoad_InvalidYAML tests invalid YAML format
 func TestLoad_InvalidYAML(t *testing.T) {
 	content := `
 endpoints:
@@ -77,7 +77,7 @@ endpoints:
 	}
 }
 
-// TestToCheckerEndpoints_Basic 测试基本配置转换
+// TestToCheckerEndpoints_Basic tests basic config conversion
 func TestToCheckerEndpoints_Basic(t *testing.T) {
 	cfg := &Config{
 		Endpoints: []Endpoint{
@@ -104,7 +104,7 @@ func TestToCheckerEndpoints_Basic(t *testing.T) {
 	if ep.URL != "https://api.example.com/health" {
 		t.Errorf("URL = %q, want %q", ep.URL, "https://api.example.com/health")
 	}
-	// 默认值
+	// Default values
 	if ep.Timeout != 5*time.Second {
 		t.Errorf("Timeout = %v, want %v", ep.Timeout, 5*time.Second)
 	}
@@ -116,7 +116,7 @@ func TestToCheckerEndpoints_Basic(t *testing.T) {
 	}
 }
 
-// TestToCheckerEndpoints_WithDefaults 测试带默认值的配置转换
+// TestToCheckerEndpoints_WithDefaults tests config conversion with defaults
 func TestToCheckerEndpoints_WithDefaults(t *testing.T) {
 	followRedirects := false
 	cfg := &Config{
@@ -158,7 +158,7 @@ func TestToCheckerEndpoints_WithDefaults(t *testing.T) {
 	}
 }
 
-// TestToCheckerEndpoints_EndpointOverridesDefaults 测试端点配置覆盖默认值
+// TestToCheckerEndpoints_EndpointOverridesDefaults tests endpoint config overrides defaults
 func TestToCheckerEndpoints_EndpointOverridesDefaults(t *testing.T) {
 	retries := 5
 	expectedStatus := 204
@@ -201,7 +201,7 @@ func TestToCheckerEndpoints_EndpointOverridesDefaults(t *testing.T) {
 	}
 }
 
-// TestToCheckerEndpoints_MissingURL 测试缺少 URL 的错误
+// TestToCheckerEndpoints_MissingURL tests missing URL error
 func TestToCheckerEndpoints_MissingURL(t *testing.T) {
 	cfg := &Config{
 		Endpoints: []Endpoint{
@@ -218,7 +218,7 @@ func TestToCheckerEndpoints_MissingURL(t *testing.T) {
 	}
 }
 
-// TestToCheckerEndpoints_InvalidTimeout 测试无效超时格式
+// TestToCheckerEndpoints_InvalidTimeout tests invalid timeout format
 func TestToCheckerEndpoints_InvalidTimeout(t *testing.T) {
 	cfg := &Config{
 		Defaults: Defaults{
@@ -235,7 +235,7 @@ func TestToCheckerEndpoints_InvalidTimeout(t *testing.T) {
 	}
 }
 
-// TestToCheckerEndpoints_DefaultName 测试默认使用 URL 作为名称
+// TestToCheckerEndpoints_DefaultName tests using URL as default name
 func TestToCheckerEndpoints_DefaultName(t *testing.T) {
 	cfg := &Config{
 		Endpoints: []Endpoint{
@@ -253,7 +253,7 @@ func TestToCheckerEndpoints_DefaultName(t *testing.T) {
 	}
 }
 
-// TestToCheckerEndpoints_Headers 测试请求头处理
+// TestToCheckerEndpoints_Headers tests headers processing
 func TestToCheckerEndpoints_Headers(t *testing.T) {
 	cfg := &Config{
 		Endpoints: []Endpoint{
@@ -280,7 +280,7 @@ func TestToCheckerEndpoints_Headers(t *testing.T) {
 	}
 }
 
-// TestExpandEnvVars_Basic 测试基本环境变量扩展
+// TestExpandEnvVars_Basic tests basic environment variable expansion
 func TestExpandEnvVars_Basic(t *testing.T) {
 	t.Setenv("TEST_VAR", "test-value")
 
@@ -292,9 +292,9 @@ func TestExpandEnvVars_Basic(t *testing.T) {
 	}
 }
 
-// TestExpandEnvVars_WithDefault 测试带默认值的环境变量扩展
+// TestExpandEnvVars_WithDefault tests environment variable expansion with default value
 func TestExpandEnvVars_WithDefault(t *testing.T) {
-	// 确保变量未设置
+	// Ensure variable is not set
 	os.Unsetenv("UNSET_VAR")
 
 	result := expandEnvVars("value-${UNSET_VAR:-default-value}")
@@ -305,7 +305,7 @@ func TestExpandEnvVars_WithDefault(t *testing.T) {
 	}
 }
 
-// TestExpandEnvVars_SetVarIgnoresDefault 测试已设置变量忽略默认值
+// TestExpandEnvVars_SetVarIgnoresDefault tests set variable ignores default value
 func TestExpandEnvVars_SetVarIgnoresDefault(t *testing.T) {
 	t.Setenv("SET_VAR", "actual-value")
 
@@ -317,7 +317,7 @@ func TestExpandEnvVars_SetVarIgnoresDefault(t *testing.T) {
 	}
 }
 
-// TestExpandEnvVars_MultipleVars 测试多个环境变量
+// TestExpandEnvVars_MultipleVars tests multiple environment variables
 func TestExpandEnvVars_MultipleVars(t *testing.T) {
 	t.Setenv("VAR1", "value1")
 	t.Setenv("VAR2", "value2")
@@ -330,7 +330,7 @@ func TestExpandEnvVars_MultipleVars(t *testing.T) {
 	}
 }
 
-// TestExpandEnvVars_NoVars 测试无环境变量
+// TestExpandEnvVars_NoVars tests no environment variables
 func TestExpandEnvVars_NoVars(t *testing.T) {
 	result := expandEnvVars("plain text without vars")
 	expected := "plain text without vars"
@@ -340,7 +340,7 @@ func TestExpandEnvVars_NoVars(t *testing.T) {
 	}
 }
 
-// TestExpandEnvVars_UnsetVarEmptyResult 测试未设置变量且无默认值
+// TestExpandEnvVars_UnsetVarEmptyResult tests unset variable without default value
 func TestExpandEnvVars_UnsetVarEmptyResult(t *testing.T) {
 	os.Unsetenv("NONEXISTENT_VAR")
 
@@ -352,7 +352,7 @@ func TestExpandEnvVars_UnsetVarEmptyResult(t *testing.T) {
 	}
 }
 
-// TestValidateConfig_Valid 测试有效配置
+// TestValidateConfig_Valid tests valid config
 func TestValidateConfig_Valid(t *testing.T) {
 	cfg := &Config{
 		Defaults: Defaults{
@@ -371,7 +371,7 @@ func TestValidateConfig_Valid(t *testing.T) {
 	}
 }
 
-// TestValidateConfig_NoEndpoints 测试无端点
+// TestValidateConfig_NoEndpoints tests no endpoints
 func TestValidateConfig_NoEndpoints(t *testing.T) {
 	cfg := &Config{
 		Endpoints: []Endpoint{},
@@ -394,7 +394,7 @@ func TestValidateConfig_NoEndpoints(t *testing.T) {
 	}
 }
 
-// TestValidateConfig_MissingURL 测试缺少 URL
+// TestValidateConfig_MissingURL tests missing URL
 func TestValidateConfig_MissingURL(t *testing.T) {
 	cfg := &Config{
 		Endpoints: []Endpoint{
@@ -415,7 +415,7 @@ func TestValidateConfig_MissingURL(t *testing.T) {
 	}
 }
 
-// TestValidateConfig_InvalidURLScheme 测试无效 URL 协议
+// TestValidateConfig_InvalidURLScheme tests invalid URL scheme
 func TestValidateConfig_InvalidURLScheme(t *testing.T) {
 	cfg := &Config{
 		Endpoints: []Endpoint{
@@ -436,7 +436,7 @@ func TestValidateConfig_InvalidURLScheme(t *testing.T) {
 	}
 }
 
-// TestValidateConfig_InvalidTimeout 测试无效超时格式
+// TestValidateConfig_InvalidTimeout tests invalid timeout format
 func TestValidateConfig_InvalidTimeout(t *testing.T) {
 	cfg := &Config{
 		Endpoints: []Endpoint{
@@ -457,7 +457,7 @@ func TestValidateConfig_InvalidTimeout(t *testing.T) {
 	}
 }
 
-// TestValidateConfig_InvalidStatusCode 测试无效状态码
+// TestValidateConfig_InvalidStatusCode tests invalid status code
 func TestValidateConfig_InvalidStatusCode(t *testing.T) {
 	invalidStatus := 999
 	cfg := &Config{
@@ -479,7 +479,7 @@ func TestValidateConfig_InvalidStatusCode(t *testing.T) {
 	}
 }
 
-// TestValidateConfig_InvalidDefaultTimeout 测试无效默认超时
+// TestValidateConfig_InvalidDefaultTimeout tests invalid default timeout
 func TestValidateConfig_InvalidDefaultTimeout(t *testing.T) {
 	cfg := &Config{
 		Defaults: Defaults{
@@ -503,11 +503,11 @@ func TestValidateConfig_InvalidDefaultTimeout(t *testing.T) {
 	}
 }
 
-// TestValidateConfig_InvalidDefaultStatus 测试无效默认状态码
+// TestValidateConfig_InvalidDefaultStatus tests invalid default status code
 func TestValidateConfig_InvalidDefaultStatus(t *testing.T) {
 	cfg := &Config{
 		Defaults: Defaults{
-			ExpectedStatus: 50, // 小于 100
+			ExpectedStatus: 50, // Less than 100
 		},
 		Endpoints: []Endpoint{
 			{URL: "https://example.com"},
@@ -527,7 +527,7 @@ func TestValidateConfig_InvalidDefaultStatus(t *testing.T) {
 	}
 }
 
-// TestValidateConfig_EnvVarURL 测试环境变量 URL 不报错
+// TestValidateConfig_EnvVarURL tests environment variable URL does not trigger error
 func TestValidateConfig_EnvVarURL(t *testing.T) {
 	cfg := &Config{
 		Endpoints: []Endpoint{
@@ -536,7 +536,7 @@ func TestValidateConfig_EnvVarURL(t *testing.T) {
 	}
 
 	errors := ValidateConfig(cfg)
-	// 环境变量 URL 不应触发协议错误
+	// Environment variable URL should not trigger protocol error
 	for _, e := range errors {
 		if strings.Contains(e, "must start with http") {
 			t.Errorf("EnvVar URL should not trigger protocol error: %v", errors)
@@ -544,7 +544,7 @@ func TestValidateConfig_EnvVarURL(t *testing.T) {
 	}
 }
 
-// TestGenerateSampleConfig_Basic 测试生成基本示例配置
+// TestGenerateSampleConfig_Basic tests generating basic sample config
 func TestGenerateSampleConfig_Basic(t *testing.T) {
 	sample := GenerateSampleConfig(false)
 
@@ -559,11 +559,11 @@ func TestGenerateSampleConfig_Basic(t *testing.T) {
 	}
 }
 
-// TestGenerateSampleConfig_Full 测试生成完整示例配置
+// TestGenerateSampleConfig_Full tests generating full sample config
 func TestGenerateSampleConfig_Full(t *testing.T) {
 	sample := GenerateSampleConfig(true)
 
-	// 完整配置应包含更多内容
+	// Full config should contain more content
 	if !strings.Contains(sample, "headers:") {
 		t.Error("full sample config should contain 'headers:'")
 	}
@@ -578,7 +578,7 @@ func TestGenerateSampleConfig_Full(t *testing.T) {
 	}
 }
 
-// TestToCheckerEndpoints_EnvVarInHeaders 测试请求头中的环境变量
+// TestToCheckerEndpoints_EnvVarInHeaders tests environment variables in headers
 func TestToCheckerEndpoints_EnvVarInHeaders(t *testing.T) {
 	t.Setenv("AUTH_TOKEN", "secret-token-123")
 
@@ -603,7 +603,7 @@ func TestToCheckerEndpoints_EnvVarInHeaders(t *testing.T) {
 	}
 }
 
-// TestToCheckerEndpoints_EnvVarInURL 测试 URL 中的环境变量
+// TestToCheckerEndpoints_EnvVarInURL tests environment variables in URL
 func TestToCheckerEndpoints_EnvVarInURL(t *testing.T) {
 	t.Setenv("API_HOST", "api.example.com")
 
@@ -625,7 +625,7 @@ func TestToCheckerEndpoints_EnvVarInURL(t *testing.T) {
 	}
 }
 
-// TestValidateConfigWithWarnings_EnvVarWarning 测试环境变量警告
+// TestValidateConfigWithWarnings_EnvVarWarning tests environment variable warning
 func TestValidateConfigWithWarnings_EnvVarWarning(t *testing.T) {
 	os.Unsetenv("UNSET_TOKEN")
 
@@ -662,7 +662,7 @@ func TestValidateConfigWithWarnings_EnvVarWarning(t *testing.T) {
 	}
 }
 
-// TestValidateConfigWithWarnings_EnvVarWithDefault 测试带默认值的环境变量不警告
+// TestValidateConfigWithWarnings_EnvVarWithDefault tests environment variable with default does not warn
 func TestValidateConfigWithWarnings_EnvVarWithDefault(t *testing.T) {
 	os.Unsetenv("OPTIONAL_VAR")
 
@@ -677,7 +677,7 @@ func TestValidateConfigWithWarnings_EnvVarWithDefault(t *testing.T) {
 
 	result := ValidateConfigWithWarnings(cfg)
 
-	// 有默认值的环境变量不应该产生警告
+	// Environment variable with default should not produce warning
 	for _, w := range result.Warnings {
 		if strings.Contains(w, "OPTIONAL_VAR") {
 			t.Errorf("Should not warn about env var with default value: %v", result.Warnings)
@@ -685,7 +685,7 @@ func TestValidateConfigWithWarnings_EnvVarWithDefault(t *testing.T) {
 	}
 }
 
-// TestValidateConfigWithWarnings_EnvVarSet 测试已设置的环境变量不警告
+// TestValidateConfigWithWarnings_EnvVarSet tests set environment variable does not warn
 func TestValidateConfigWithWarnings_EnvVarSet(t *testing.T) {
 	t.Setenv("SET_TOKEN", "my-token")
 
@@ -710,7 +710,7 @@ func TestValidateConfigWithWarnings_EnvVarSet(t *testing.T) {
 	}
 }
 
-// TestFindEnvVars 测试查找环境变量
+// TestFindEnvVars tests finding environment variables
 func TestFindEnvVars(t *testing.T) {
 	tests := []struct {
 		input    string
@@ -737,7 +737,7 @@ func TestFindEnvVars(t *testing.T) {
 	}
 }
 
-// createTempFile 创建临时文件
+// createTempFile creates a temporary file
 func createTempFile(t *testing.T, pattern, content string) string {
 	t.Helper()
 	tmpDir := t.TempDir()

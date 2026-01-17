@@ -1,5 +1,5 @@
-// run 命令
-// 实现从配置文件批量检查多个端点
+// Run command
+// Implements batch checking multiple endpoints from config file
 package cmd
 
 import (
@@ -13,7 +13,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// run 命令的参数
+// Run command flags
 var (
 	runConfigPath  string
 	runTimeout     time.Duration
@@ -23,7 +23,7 @@ var (
 	runInsecure    bool
 )
 
-// runCmd 是 run 子命令
+// runCmd is the run subcommand
 var runCmd = &cobra.Command{
 	Use:   "run",
 	Short: "Run batch health checks from config file",
@@ -53,7 +53,7 @@ Examples:
 func init() {
 	rootCmd.AddCommand(runCmd)
 
-	// 定义参数
+	// Define flags
 	runCmd.Flags().StringVarP(&runConfigPath, "config", "c", "endpoints.yaml",
 		"Path to configuration file")
 	runCmd.Flags().DurationVarP(&runTimeout, "timeout", "t", 0,
@@ -68,16 +68,16 @@ func init() {
 		"Skip SSL certificate verification for all endpoints")
 }
 
-// runRun 执行 run 命令
+// runRun executes the run command
 func runRun(cmd *cobra.Command, args []string) error {
-	// 加载配置文件
+	// Load config file
 	cfg, err := config.Load(runConfigPath)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %s\n", err)
 		os.Exit(2)
 	}
 
-	// 验证配置
+	// Validate config
 	if errors := config.ValidateConfig(cfg); len(errors) > 0 {
 		fmt.Fprintf(os.Stderr, "Configuration errors:\n")
 		for _, e := range errors {
@@ -86,14 +86,14 @@ func runRun(cmd *cobra.Command, args []string) error {
 		os.Exit(2)
 	}
 
-	// 转换为 checker.Endpoint
+	// Convert to checker.Endpoint
 	endpoints, err := cfg.ToCheckerEndpoints()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %s\n", err)
 		os.Exit(2)
 	}
 
-	// 应用命令行覆盖参数
+	// Apply command line override flags
 	if runTimeout > 0 {
 		for i := range endpoints {
 			endpoints[i].Timeout = runTimeout
@@ -106,11 +106,11 @@ func runRun(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	// 创建检查器并执行
+	// Create checker and execute
 	c := checker.New(checker.WithConcurrency(runConcurrency))
 	result := c.CheckAll(endpoints)
 
-	// 输出结果
+	// Output results
 	if !runQuiet {
 		formatter := output.NewFormatter(
 			output.OutputFormat(runOutput),
@@ -123,7 +123,7 @@ func runRun(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	// 根据结果设置退出码
+	// Set exit code based on result
 	if result.Summary.Unhealthy > 0 {
 		os.Exit(1)
 	}

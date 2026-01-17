@@ -1,5 +1,5 @@
-// 输出格式化接口定义
-// 定义输出格式化器的抽象接口
+// Output formatter interface definition
+// Defines abstract interface for output formatters
 package output
 
 import (
@@ -8,16 +8,16 @@ import (
 	"github.com/r1ckyIn/healthcheck-cli/internal/checker"
 )
 
-// Formatter 是输出格式化器的接口
+// Formatter is the interface for output formatters
 type Formatter interface {
-	// FormatSingle 格式化单个检查结果
+	// FormatSingle formats a single check result
 	FormatSingle(result checker.Result) error
 
-	// FormatBatch 格式化批量检查结果
+	// FormatBatch formats batch check results
 	FormatBatch(result checker.BatchResult) error
 }
 
-// OutputFormat 输出格式类型
+// OutputFormat is the output format type
 type OutputFormat string
 
 const (
@@ -25,7 +25,7 @@ const (
 	FormatJSON  OutputFormat = "json"
 )
 
-// NewFormatter 根据格式类型创建对应的格式化器
+// NewFormatter creates a formatter based on format type
 func NewFormatter(format OutputFormat, w io.Writer, noColor bool) Formatter {
 	switch format {
 	case FormatJSON:

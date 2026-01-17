@@ -1,5 +1,5 @@
-// version 命令
-// 显示版本信息
+// Version command
+// Displays version information
 package cmd
 
 import (
@@ -9,14 +9,14 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// 版本信息变量，通过 ldflags 在编译时注入
+// Version info variables, injected via ldflags at build time
 var (
 	Version   = "dev"
 	BuildTime = "unknown"
 	GitCommit = "unknown"
 )
 
-// versionCmd 是 version 子命令
+// versionCmd is the version subcommand
 var versionCmd = &cobra.Command{
 	Use:   "version",
 	Short: "Show version information",
@@ -28,7 +28,7 @@ func init() {
 	rootCmd.AddCommand(versionCmd)
 }
 
-// runVersion 执行 version 命令
+// runVersion executes the version command
 func runVersion(cmd *cobra.Command, args []string) {
 	fmt.Printf("healthcheck %s\n", Version)
 	fmt.Printf("  Built:    %s\n", BuildTime)

@@ -1,5 +1,5 @@
-// Config file parsing / 配置文件解析
-// Implement YAML config file parsing and management / 实现 YAML 配置文件的解析和管理
+// Config file parsing
+// Implements YAML config file parsing and management
 package config
 
 import (
@@ -13,13 +13,13 @@ import (
 	"github.com/spf13/viper"
 )
 
-// Config represents complete config structure / 表示完整的配置结构
+// Config represents complete config structure
 type Config struct {
 	Defaults  Defaults   `mapstructure:"defaults"`
 	Endpoints []Endpoint `mapstructure:"endpoints"`
 }
 
-// Defaults is global default config / 全局默认配置
+// Defaults is global default config
 type Defaults struct {
 	Timeout         string `mapstructure:"timeout"`
 	Retries         int    `mapstructure:"retries"`
@@ -28,7 +28,7 @@ type Defaults struct {
 	Insecure        bool   `mapstructure:"insecure"`
 }
 
-// Endpoint is single endpoint config / 单个端点配置
+// Endpoint is single endpoint config
 type Endpoint struct {
 	Name            string            `mapstructure:"name"`
 	URL             string            `mapstructure:"url"`
@@ -40,9 +40,9 @@ type Endpoint struct {
 	Headers         map[string]string `mapstructure:"headers"`
 }
 
-// Load loads config from file / 从文件加载配置
+// Load loads config from file
 func Load(path string) (*Config, error) {
-	// Check if file exists / 检查文件是否存在
+	// Check if file exists
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		return nil, fmt.Errorf("config file not found: %s", path)
 	}
@@ -63,11 +63,11 @@ func Load(path string) (*Config, error) {
 	return &cfg, nil
 }
 
-// ToCheckerEndpoints converts config to checker.Endpoint list / 将配置转换为 checker.Endpoint 列表
+// ToCheckerEndpoints converts config to checker.Endpoint list
 func (c *Config) ToCheckerEndpoints() ([]checker.Endpoint, error) {
 	endpoints := make([]checker.Endpoint, 0, len(c.Endpoints))
 
-	// Parse defaults / 解析默认值
+	// Parse defaults
 	defaultTimeout := 5 * time.Second
 	if c.Defaults.Timeout != "" {
 		t, err := time.ParseDuration(c.Defaults.Timeout)
@@ -90,20 +90,20 @@ func (c *Config) ToCheckerEndpoints() ([]checker.Endpoint, error) {
 
 	defaultInsecure := c.Defaults.Insecure
 
-	// Convert each endpoint / 转换每个端点
+	// Convert each endpoint
 	for i, ep := range c.Endpoints {
 		if ep.URL == "" {
 			return nil, fmt.Errorf("endpoint #%d: missing url", i+1)
 		}
 
-		// Expand environment variables / 处理环境变量替换
+		// Expand environment variables
 		url := expandEnvVars(ep.URL)
 		name := ep.Name
 		if name == "" {
 			name = url
 		}
 
-		// Parse timeout / 解析超时时间
+		// Parse timeout
 		timeout := defaultTimeout
 		if ep.Timeout != "" {
 			t, err := time.ParseDuration(ep.Timeout)
@@ -113,31 +113,31 @@ func (c *Config) ToCheckerEndpoints() ([]checker.Endpoint, error) {
 			timeout = t
 		}
 
-		// Retry count / 重试次数
+		// Retry count
 		retries := defaultRetries
 		if ep.Retries != nil {
 			retries = *ep.Retries
 		}
 
-		// Expected status code / 期望状态码
+		// Expected status code
 		expectedStatus := defaultExpectedStatus
 		if ep.ExpectedStatus != nil {
 			expectedStatus = *ep.ExpectedStatus
 		}
 
-		// Follow redirects / 跟随重定向
+		// Follow redirects
 		followRedirects := defaultFollowRedirects
 		if ep.FollowRedirects != nil {
 			followRedirects = *ep.FollowRedirects
 		}
 
-		// SSL verification / SSL 验证
+		// SSL verification
 		insecure := defaultInsecure
 		if ep.Insecure != nil {
 			insecure = *ep.Insecure
 		}
 
-		// Expand environment variables in headers / 处理 Headers 中的环境变量
+		// Expand environment variables in headers
 		headers := make(map[string]string)
 		for k, v := range ep.Headers {
 			headers[k] = expandEnvVars(v)
@@ -158,14 +158,14 @@ func (c *Config) ToCheckerEndpoints() ([]checker.Endpoint, error) {
 	return endpoints, nil
 }
 
-// envVarPattern matches ${VAR} or ${VAR:-default} / 匹配 ${VAR} 或 ${VAR:-default}
+// envVarPattern matches ${VAR} or ${VAR:-default}
 var envVarPattern = regexp.MustCompile(`\$\{([^}:]+)(:-([^}]*))?\}`)
 
-// expandEnvVars expands environment variables / 扩展环境变量
-// Supports ${VAR} and ${VAR:-default} format / 支持 ${VAR} 和 ${VAR:-default} 格式
+// expandEnvVars expands environment variables
+// Supports ${VAR} and ${VAR:-default} format
 func expandEnvVars(s string) string {
 	return envVarPattern.ReplaceAllStringFunc(s, func(match string) string {
-		// Parse variable name and default value / 解析变量名和默认值
+		// Parse variable name and default value
 		parts := envVarPattern.FindStringSubmatch(match)
 		if len(parts) < 2 {
 			return match
@@ -177,7 +177,7 @@ func expandEnvVars(s string) string {
 			defaultValue = parts[3]
 		}
 
-		// Get environment variable / 获取环境变量
+		// Get environment variable
 		if value := os.Getenv(varName); value != "" {
 			return value
 		}
@@ -185,7 +185,7 @@ func expandEnvVars(s string) string {
 	})
 }
 
-// findEnvVars finds all environment variables in a string / 查找字符串中的所有环境变量
+// findEnvVars finds all environment variables in a string
 func findEnvVars(s string) []string {
 	matches := envVarPattern.FindAllStringSubmatch(s, -1)
 	vars := make([]string, 0, len(matches))
@@ -197,14 +197,12 @@ func findEnvVars(s string) []string {
 	return vars
 }
 
-// GenerateSampleConfig generates sample config / 生成示例配置
+// GenerateSampleConfig generates sample config
 func GenerateSampleConfig(full bool) string {
 	if full {
 		return `# Health Check CLI Configuration
-# 健康检查 CLI 配置文件
 
 # Global default settings
-# 全局默认配置
 defaults:
   timeout: 5s
   retries: 2
@@ -213,15 +211,12 @@ defaults:
   insecure: false
 
 # Endpoint list
-# 端点列表
 endpoints:
   # Basic configuration
-  # 基本配置
   - name: "Public Website"
     url: "https://www.example.com"
 
   # Full configuration
-  # 完整配置
   - name: "API Gateway"
     url: "https://api.example.com/health"
     timeout: 10s
@@ -230,7 +225,6 @@ endpoints:
     follow_redirects: true
 
   # With authentication
-  # 带认证
   - name: "Admin API"
     url: "https://admin.example.com/health"
     headers:
@@ -238,13 +232,11 @@ endpoints:
       X-Request-ID: "healthcheck"
 
   # Internal service (self-signed certificate)
-  # 内网服务（自签名证书）
   - name: "Internal Service"
     url: "https://internal.local:8443/ping"
     insecure: true
 
   # Expect non-200 status
-  # 期望非 200 状态码
   - name: "Redirect Check"
     url: "https://old.example.com"
     expected_status: 301
@@ -253,16 +245,13 @@ endpoints:
 	}
 
 	return `# Health Check CLI Configuration
-# 健康检查 CLI 配置文件
 
 # Global defaults (optional)
-# 全局默认配置（可选）
 defaults:
   timeout: 5s
   retries: 2
 
 # Endpoints to check
-# 待检查的端点
 endpoints:
   - name: "Example API"
     url: "https://api.example.com/health"
@@ -272,56 +261,56 @@ endpoints:
 `
 }
 
-// ValidationResult contains errors and warnings / 包含错误和警告的验证结果
+// ValidationResult contains errors and warnings
 type ValidationResult struct {
 	Errors   []string
 	Warnings []string
 }
 
-// ValidateConfig validates config file / 验证配置文件
+// ValidateConfig validates config file
 func ValidateConfig(cfg *Config) []string {
 	result := ValidateConfigWithWarnings(cfg)
 	return result.Errors
 }
 
-// ValidateConfigWithWarnings validates config and returns both errors and warnings / 验证配置并返回错误和警告
+// ValidateConfigWithWarnings validates config and returns both errors and warnings
 func ValidateConfigWithWarnings(cfg *Config) ValidationResult {
 	result := ValidationResult{
 		Errors:   make([]string, 0),
 		Warnings: make([]string, 0),
 	}
 
-	// Check if endpoints exist / 检查是否有端点
+	// Check if endpoints exist
 	if len(cfg.Endpoints) == 0 {
 		result.Errors = append(result.Errors, "no endpoints defined")
 	}
 
-	// Track unset environment variables / 跟踪未设置的环境变量
+	// Track unset environment variables
 	unsetEnvVars := make(map[string]bool)
 
-	// Validate each endpoint / 验证每个端点
+	// Validate each endpoint
 	for i, ep := range cfg.Endpoints {
 		prefix := fmt.Sprintf("endpoint #%d", i+1)
 		if ep.Name != "" {
 			prefix = fmt.Sprintf("endpoint '%s'", ep.Name)
 		}
 
-		// URL is required / URL 必填
+		// URL is required
 		if ep.URL == "" {
 			result.Errors = append(result.Errors, fmt.Sprintf("%s: missing url", prefix))
 			continue
 		}
 
-		// URL format check / URL 格式检查
+		// URL format check
 		if !strings.HasPrefix(ep.URL, "http://") && !strings.HasPrefix(ep.URL, "https://") &&
 			!strings.HasPrefix(ep.URL, "${") {
 			result.Errors = append(result.Errors, fmt.Sprintf("%s: url must start with http:// or https://", prefix))
 		}
 
-		// Check for unset environment variables in URL / 检查 URL 中未设置的环境变量
+		// Check for unset environment variables in URL
 		for _, varName := range findEnvVars(ep.URL) {
 			if os.Getenv(varName) == "" && !unsetEnvVars[varName] {
-				// Check if has default value / 检查是否有默认值
+				// Check if has default value
 				if !strings.Contains(ep.URL, "${"+varName+":-") {
 					unsetEnvVars[varName] = true
 					result.Warnings = append(result.Warnings, fmt.Sprintf("%s: environment variable '%s' is not set and has no default value", prefix, varName))
@@ -329,7 +318,7 @@ func ValidateConfigWithWarnings(cfg *Config) ValidationResult {
 			}
 		}
 
-		// Check for unset environment variables in headers / 检查 Headers 中未设置的环境变量
+		// Check for unset environment variables in headers
 		for headerName, headerValue := range ep.Headers {
 			for _, varName := range findEnvVars(headerValue) {
 				if os.Getenv(varName) == "" && !unsetEnvVars[varName] {
@@ -341,20 +330,20 @@ func ValidateConfigWithWarnings(cfg *Config) ValidationResult {
 			}
 		}
 
-		// Timeout format check / 超时格式检查
+		// Timeout format check
 		if ep.Timeout != "" {
 			if _, err := time.ParseDuration(ep.Timeout); err != nil {
 				result.Errors = append(result.Errors, fmt.Sprintf("%s: invalid timeout format '%s'", prefix, ep.Timeout))
 			}
 		}
 
-		// Status code range check / 状态码范围检查
+		// Status code range check
 		if ep.ExpectedStatus != nil && (*ep.ExpectedStatus < 100 || *ep.ExpectedStatus > 599) {
 			result.Errors = append(result.Errors, fmt.Sprintf("%s: expected_status must be between 100 and 599", prefix))
 		}
 	}
 
-	// Validate defaults / 验证默认值
+	// Validate defaults
 	if cfg.Defaults.Timeout != "" {
 		if _, err := time.ParseDuration(cfg.Defaults.Timeout); err != nil {
 			result.Errors = append(result.Errors, fmt.Sprintf("defaults: invalid timeout format '%s'", cfg.Defaults.Timeout))
