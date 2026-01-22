@@ -38,7 +38,9 @@ dist/
 endpoints.yaml
 *.local.yaml
 
+# Claude Code configuration
+CLAUDE.md
+
 # Local Chinese documentation (keep bilingual on GitHub)
-# 本地中文文档（GitHub 上保留双语版本）
 *_CN.md
 *.cn.md

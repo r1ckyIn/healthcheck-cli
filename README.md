@@ -32,6 +32,14 @@ Health Check CLI is a command-line tool written in Go for batch HTTP endpoint he
 - **Exit Codes**: CI/CD friendly exit codes for automation
 - **Cross-Platform**: Supports Linux, macOS, and Windows
 
+### Security Notice
+
+> ⚠️ **WARNING**: The `--insecure` flag and `insecure: true` config option bypass SSL/TLS certificate verification. This should **ONLY** be used for:
+> - Self-signed certificates in development/staging environments
+> - Internal services with known certificate issues
+>
+> **Never use `--insecure` in production** for public endpoints, as this makes the connection vulnerable to man-in-the-middle attacks.
+
 ### Quick Start
 
 ```bash
@@ -151,6 +159,14 @@ Health Check CLI 是一个用 Go 语言编写的命令行工具，用于批量�
 - **SSL 证书跳过**：支持自签名证书
 - **退出码**：CI/CD 友好的退出码，便于自动化
 - **跨平台**：支持 Linux、macOS、Windows
+
+### 安全提示
+
+> ⚠️ **警告**：`--insecure` 标志和 `insecure: true` 配置选项会跳过 SSL/TLS 证书验证。此功能**仅**适用于：
+> - 开发/测试环境中的自签名证书
+> - 已知存在证书问题的内部服务
+>
+> **切勿在生产环境中对公开端点使用 `--insecure`**，否则连接可能遭受中间人攻击。
 
 ### 快速开始
 
